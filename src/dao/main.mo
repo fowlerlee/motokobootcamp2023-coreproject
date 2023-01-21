@@ -22,17 +22,20 @@ actor {
         vote_no : Nat
     };
 
-    type Neurons = {
+    type Neuron = {
         id : Principal;
-        locked_tokens : Nat;
-        state : { #locked; #dissolved; #dissolving }
+        locked_tokens : Int;
+        state : { #locked; #dissolved; #dissolving };
+        delay : Int
     };
 
-    stable var stable_store : [(Int, Proposal)] = [];
-    stable var neurons : [(Int, Neurons)] = [];
-
-    let store = HashMap.fromIter<Int, Proposal>(stable_store.vals(), 10, Int.equal, Int.hash);
     stable var proposalId : Int = 0;
+    stable var neuronId : Nat = 0;
+    stable var stable_store : [(Int, Proposal)] = [];
+    stable var stable_neurons : [(Principal, Neuron)] = [];
+
+    let all_neurons = HashMap.fromIter<Nat, Neuron>(stable_neurons.vals(), 10, Principal.equal, Principal.hash);
+    let store = HashMap.fromIter<Int, Proposal>(stable_store.vals(), 10, Int.equal, Int.hash);
 
     public shared ({ caller }) func submit_proposal(this_payload : Text) : async {
         #Ok : Proposal;
@@ -104,11 +107,36 @@ actor {
     // lock neurons
     //////////////////////////////////
 
-    public shared ({ caller }) func lock_neuron(account : Principal) : () {
+    public shared ({ caller }) func lock_neuron(account : Int, delay : Int) : Result.Result<Text, ()> {
         // assert not Principal.isAnonymous(caller);
         // assert account.Tokens > 1_000_000_000_000;
 
-        
+        let neuron = Neuron {
+            id : caller;
+            locked_tokens : Int;
+            state : # (locked);
+            delay : Time.now() + delay
+        };
+        all_neurons.put(neuronId, neuron);
+        #ok("Tokens locked in Neuron with id: " # Principal.toText(caller))
+    };
+
+    public query get_all_neurons() : [(Nat, Neuron)]{
+        Iter.toArray(all_neurons);
+    }
+
+    public shared ({ caller }) func set_neuron_dissolving(account : Int, delay : Int) : Result.Result<Text, ()> {
+        // assert not Principal.isAnonymous(caller);
+        // assert account.Tokens > 1_000_000_000_000;
+
+        let neuron = Neuron {
+            id : caller;
+            locked_tokens : Int;
+            state : # (locked);
+            delay : Time.now() + delay
+        };
+        all_neurons.put(neuronId, neuron);
+        #ok("Tokens locked in Neuron with id: " # Principal.toText(caller))
     };
 
 }

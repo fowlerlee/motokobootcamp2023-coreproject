@@ -69,13 +69,7 @@ module {
       };
       s
   };
-  // public func proposals_fromArray(arr: [Proposal]) : Trie.Trie<Nat, Proposal> {
-  //     var s = Trie.empty<Nat, Proposal>();
-  //     for (proposal in arr.vals()) {
-  //         s := Trie.put(s, proposal_key(proposal.id), Nat.equal, proposal).0;
-  //     };
-  //     s
-  // };
+
   
   public let oneToken : Nat = 10_000_000 ;
   public let zeroToken : Nat =  0 ;  
