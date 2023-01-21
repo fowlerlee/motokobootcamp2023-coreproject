@@ -1,19 +1,10 @@
 export const idlFactory = ({ IDL }) => {
-  const Subaccount = IDL.Vec(IDL.Nat8);
-  const Account = IDL.Record({
-    'owner' : IDL.Principal,
-    'subaccount' : IDL.Opt(Subaccount),
-  });
   const Proposal = IDL.Record({
-    'status' : IDL.Variant({
-      'Passed' : IDL.Null,
-      'Open' : IDL.Null,
-      'Rejected' : IDL.Null,
-    }),
-    'creator' : Account,
-    'votes' : IDL.Tuple(IDL.Nat, IDL.Nat),
-    'timestamp' : IDL.Int,
-    'payload' : IDL.Text,
+    'id' : IDL.Int,
+    'principal' : IDL.Principal,
+    'vote_for' : IDL.Nat,
+    'text' : IDL.Text,
+    'vote_against' : IDL.Nat,
   });
   return IDL.Service({
     'get_all_proposals' : IDL.Func(

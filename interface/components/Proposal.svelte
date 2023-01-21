@@ -4,12 +4,11 @@
 
 <div class="post-preview">
   <h2>{post[0]}</h2>
-  <p>{post[1].creator.owner.toString()}</p>
-  <p>Change website text to: {post[1].payload}</p>
+  <p>{post[1].principal.toString()}</p>
+  <p>Change website text to: {post[1].text}</p>
   <p>
-    Yes: {(post[1].votes[0] / BigInt(100000000)).toString()}, No: {(
-      post[1].votes[1] / BigInt(100000000)
-    ).toString()}
+    Yes: {(post[1].vote_for).toString()}, No: {(
+      post[1].vote_against).toString()}
   </p>
 </div>
 

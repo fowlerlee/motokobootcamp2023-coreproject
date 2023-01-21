@@ -8,72 +8,107 @@ import HashMap "mo:base/HashMap";
 import List "mo:base/List";
 import Debug "mo:base/Debug";
 import Iter "mo:base/Iter";
+import Time "mo:base/Time";
 
-
-
-
+import Option "mo:base/Option";
 
 actor {
 
-    
-    
-    private var proposals = HashMap.HashMap<Principal, List.List<T.Proposal>>(1, Principal.equal, Principal.hash);
-    private var users = HashMap.HashMap<Principal, T.Account>(10, Principal.equal, Principal.hash);
-    private stable var number_of_proposals : Nat = 1;
-    private stable var stable_proposals: [(Principal, List.List<T.Proposal>)] = [];
-
-    private func is_user_registered(principal: Principal): Bool {
-        switch(users.get(principal)) {
-            case(?some) { true };
-            case(_) { false };
-        };
+    type Proposal = {
+        id : Int;
+        text : Text;
+        principal : Principal;
+        vote_yes : Nat;
+        vote_no : Nat
     };
 
-    public shared({caller}) func submit_proposal(this_payload : Text) : async Result.Result<T.Proposal, Text> {
+    type Neurons = {
+        id : Principal;
+        locked_tokens : Nat;
+        state : { #locked; #dissolved; #dissolving }
+    };
+
+    stable var stable_store : [(Int, Proposal)] = [];
+    stable var neurons : [(Int, Neurons)] = [];
+
+    let store = HashMap.fromIter<Int, Proposal>(stable_store.vals(), 10, Int.equal, Int.hash);
+    stable var proposalId : Int = 0;
+
+    public shared ({ caller }) func submit_proposal(this_payload : Text) : async {
+        #Ok : Proposal;
+        #Err : Text
+    } {
         // assert not Principal.isAnonymous(caller);
-        // assert is_user_registered(caller);
-//   public type Proposal = {
-//     id : Nat;
-//     votes_no : Tokens;
-//     voters : List.List<Principal>;
-//     state : ProposalState;
-//     timestamp : Int;
-//     proposer : Principal;
-//     votes_yes : Tokens;
-//     payload : ProposalPayload;
-//   };
-        return #err("Not implemented yet");
+        var prop : Proposal = {
+            id = proposalId;
+            text = this_payload;
+            principal = caller;
+            vote_yes = 0;
+            vote_no = 0
+        };
+
+        store.put(proposalId, prop);
+        proposalId += 1;
+        return #Ok(prop)
     };
 
-    public shared({caller}) func vote(proposal_id : Int, yes_or_no : Bool) : async {#Ok : (Nat, Nat); #Err : Text} {
-        return #Err("Not implemented yet");
+    public shared ({ caller }) func vote(proposal_id : Int, yes_or_no : Bool) : async {
+        #Ok : (Nat, Nat);
+        #Err : Text
+    } {
+        // assert not Principal.isAnonymous(caller);
+        switch (store.get(proposal_id)) {
+            case (null) {
+                return #Err("No proposal with id " # Int.toText(proposal_id) # " exists")
+            };
+            case (?some) {
+                var vote_yes : Nat = some.vote_yes;
+                var vote_no : Nat = some.vote_no;
+                if (yes_or_no) {
+                    vote_yes := 1000
+                } else {
+                    vote_no := 1000
+                };
+                var prop : Proposal = {
+                    id = some.id;
+                    text = some.text;
+                    principal = some.principal;
+                    vote_yes;
+                    vote_no
+                };
+                store.put(some.id, prop);
+
+                return #Ok(prop.vote_yes, prop.vote_no)
+            }
+        }
     };
 
-    public query func get_proposal(id : Int) : async ?T.Proposal {
-        return null
+    public query func get_proposal(id : Int) : async ?Proposal {
+        store.get(id)
     };
-    
-    public query func get_all_proposals() : async [(Int, T.Proposal)] {
-        return []
+
+    public query func get_all_proposals() : async [(Int, Proposal)] {
+        let ret : [(Int, Proposal)] = Iter.toArray<(Int, Proposal)>(store.entries());
+        return ret
     };
 
     system func preupgrade() {
-        Debug.print("Starting pre-upgrade hook...");
-        stable_proposals := Iter.toArray(proposals.entries());
-        // stable_users := UserStore.serializeAll(users);
-        Debug.print("pre-upgrade finished.");
+        stable_store := Iter.toArray(store.entries())
     };
 
-    // The work required after a canister upgrade ends.
-    // See [nextNoteId], [stable_notesByUser], [stable_users]
     system func postupgrade() {
-        Debug.print("Starting post-upgrade hook...");
-        proposals := HashMap.fromIter<Principal, List.List<T.Proposal>>(
-            stable_proposals.vals(), stable_proposals.size(), Principal.equal, Principal.hash);
-
-        // users := UserStore.deserialize(stable_users, stable_notesByUser.size());
-        stable_proposals := [];
-        Debug.print("post-upgrade finished.");
+        stable_store := []
     };
 
-};
+    ///////////////////////////////////
+    // lock neurons
+    //////////////////////////////////
+
+    public shared ({ caller }) func lock_neuron(account : Principal) : () {
+        // assert not Principal.isAnonymous(caller);
+        // assert account.Tokens > 1_000_000_000_000;
+
+        
+    };
+
+}

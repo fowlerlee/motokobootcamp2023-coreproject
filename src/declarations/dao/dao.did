@@ -1,23 +1,10 @@
-type Subaccount = vec nat8;
 type Proposal = 
  record {
-   creator: Account;
-   payload: text;
-   status: variant {
-             Open;
-             Passed;
-             Rejected;
-           };
-   timestamp: int;
-   votes: record {
-            nat;
-            nat;
-          };
- };
-type Account = 
- record {
-   owner: principal;
-   subaccount: opt Subaccount;
+   id: int;
+   "principal": principal;
+   "text": text;
+   vote_against: nat;
+   vote_for: nat;
  };
 service : {
   get_all_proposals: () -> (vec record {

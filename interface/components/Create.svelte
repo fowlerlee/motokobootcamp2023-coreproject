@@ -10,7 +10,7 @@
     let dao = get(daoActor)
     if (!dao) {
       return
-    }
+    }  
     let res = await dao.submit_proposal(summarypayload)
     if (res.Ok) {
       return res.Ok
@@ -39,7 +39,7 @@
     {#await promise}
       <p style="color: white">...waiting</p>
     {:then proposal}
-      <p style="color: white">Proposal created with payload {proposal}</p>
+      <p style="color: white">Proposal created with payload {proposal.text}</p>
     {:catch error}
       <p style="color: red">{error.message}</p>
     {/await}

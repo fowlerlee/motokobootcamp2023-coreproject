@@ -8,21 +8,21 @@ import Principal "mo:base/Principal";
 module {
   public type Result<T, E> = Result.Result<T, E>;
   public type Account = { owner : Principal; tokens : Tokens };
-  public type Proposal = {
-    id : Nat;
-    votes_no : Tokens;
-    voters : List.List<Principal>;
-    state : ProposalState;
-    timestamp : Int;
-    proposer : Principal;
-    votes_yes : Tokens;
-    payload : ProposalPayload;
-  };
-  public type ProposalPayload = {
-    method : Text;
-    canister_id : Principal;
-    message : Blob;
-  };
+  // public type Proposal = {
+  //   id : Nat;
+  //   votes_no : Nat;
+  //   voters : List.List<Principal>;
+  //   state : ProposalState;
+  //   timestamp : Int;
+  //   proposer : Principal;
+  //   votes_yes : Nat;
+  //   payload : Text;
+  // };
+  // public type ProposalPayload = {
+  //   method : Text;
+  //   canister_id : Principal;
+  //   message : Blob;
+  // };
   public type ProposalState = {
       // A failure occurred while executing the proposal
       #failed : Text;
@@ -58,11 +58,7 @@ module {
     // otherwise it is lost. This prevents users from submitting superfluous proposals.
     proposal_submission_deposit: Tokens;
   };
-  public type BasicDaoStableStorage = {
-    accounts: [Account];
-    proposals: [Proposal];
-    system_params: SystemParams;
-  };
+
 
   public func proposal_key(t: Nat) : Trie.Key<Nat> = { key = t; hash = Int.hash t };
   public func account_key(t: Principal) : Trie.Key<Principal> = { key = t; hash = Principal.hash t };
@@ -73,14 +69,14 @@ module {
       };
       s
   };
-  public func proposals_fromArray(arr: [Proposal]) : Trie.Trie<Nat, Proposal> {
-      var s = Trie.empty<Nat, Proposal>();
-      for (proposal in arr.vals()) {
-          s := Trie.put(s, proposal_key(proposal.id), Nat.equal, proposal).0;
-      };
-      s
-  };
+  // public func proposals_fromArray(arr: [Proposal]) : Trie.Trie<Nat, Proposal> {
+  //     var s = Trie.empty<Nat, Proposal>();
+  //     for (proposal in arr.vals()) {
+  //         s := Trie.put(s, proposal_key(proposal.id), Nat.equal, proposal).0;
+  //     };
+  //     s
+  // };
   
-  public let oneToken = { amount_e8s = 10_000_000 };
-  public let zeroToken = { amount_e8s = 0 };  
+  public let oneToken : Nat = 10_000_000 ;
+  public let zeroToken : Nat =  0 ;  
 }
