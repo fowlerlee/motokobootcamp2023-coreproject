@@ -8,6 +8,28 @@
       "main": "./src/dao/main.mo",
       "type": "motoko"
     },
+    "bootcamptoken": {
+      "main": "./src/bootcamptoken/main.mo",
+      "type": "motoko",
+      "remote": {
+        "candid": "src/bootcamptoken/bootcamptoken.did",
+        "id": {
+          "ic": "db3eq-6iaaa-aaaah-abz6a-cai"
+        }
+      }
+    },
+    "ledger": {
+      "main": "src/ledger/ledger.mo",
+      "type": "motoko",
+      "candid": "src/ledger/ledger.private.did",
+      "wasm": "./src/ledger/ledger.wasm",
+      "remote": {
+        "candid": "src/ledger/ledger.public.did",
+        "id": {
+          "ic":"mc6ru-gyaaa-aaaar-qaaaq-cai"
+        }
+      }
+    },
     "assets": {
       "dependencies": [
         "webpage",

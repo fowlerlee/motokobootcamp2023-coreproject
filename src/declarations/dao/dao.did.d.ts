@@ -1,15 +1,9 @@
 import type { Principal } from '@dfinity/principal';
 import type { ActorMethod } from '@dfinity/agent';
 
-export interface Proposal {
-  'id' : bigint,
-  'principal' : Principal,
-  'vote_for' : bigint,
-  'text' : string,
-  'vote_against' : bigint,
-}
-export interface _SERVICE {
+export interface Dex {
   'get_all_proposals' : ActorMethod<[], Array<[bigint, Proposal]>>,
+  'get_principal' : ActorMethod<[], Principal>,
   'get_proposal' : ActorMethod<[bigint], [] | [Proposal]>,
   'submit_proposal' : ActorMethod<
     [string],
@@ -22,3 +16,11 @@ export interface _SERVICE {
       { 'Err' : string }
   >,
 }
+export interface Proposal {
+  'id' : bigint,
+  'principal' : Principal,
+  'vote_yes' : bigint,
+  'text' : string,
+  'vote_no' : bigint,
+}
+export interface _SERVICE extends Dex {}

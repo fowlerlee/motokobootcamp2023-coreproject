@@ -2,16 +2,17 @@ export const idlFactory = ({ IDL }) => {
   const Proposal = IDL.Record({
     'id' : IDL.Int,
     'principal' : IDL.Principal,
-    'vote_for' : IDL.Nat,
+    'vote_yes' : IDL.Nat,
     'text' : IDL.Text,
-    'vote_against' : IDL.Nat,
+    'vote_no' : IDL.Nat,
   });
-  return IDL.Service({
+  const Dex = IDL.Service({
     'get_all_proposals' : IDL.Func(
         [],
         [IDL.Vec(IDL.Tuple(IDL.Int, Proposal))],
         ['query'],
       ),
+    'get_principal' : IDL.Func([], [IDL.Principal], []),
     'get_proposal' : IDL.Func([IDL.Int], [IDL.Opt(Proposal)], ['query']),
     'submit_proposal' : IDL.Func(
         [IDL.Text],
@@ -24,5 +25,6 @@ export const idlFactory = ({ IDL }) => {
         [],
       ),
   });
+  return Dex;
 };
 export const init = ({ IDL }) => { return []; };
