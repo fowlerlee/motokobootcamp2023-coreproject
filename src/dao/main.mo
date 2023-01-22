@@ -126,7 +126,6 @@ shared (init_msg) actor class Dao() = this {
         let ret : [(Int, Proposal)] = Iter.toArray<(Int, Proposal)>(store.entries());
         for (item in ret.vals()) {
             let id = item.1.text;
-            // Debug.print("prop: " # item.1);
             let prop = item.1;
             if (prop.vote_yes >= 10000000000) {
                 ignore update_proposal_status(prop)
@@ -145,7 +144,6 @@ shared (init_msg) actor class Dao() = this {
     ////////////////////////////////////////
     // section -> system calls
     //////////////////////////////////
-
 
     system func preupgrade() {
         stable_store := Iter.toArray(store.entries());
@@ -193,7 +191,7 @@ shared (init_msg) actor class Dao() = this {
 
     public shared ({ caller }) func lock_neuron(amount : Nat, delay : Int) : async Result.Result<Text, Text> {
         assert not Principal.isAnonymous(caller);
-        // assert account.Tokens > 1_000_000_000_000;
+        
         let account : Account = { owner = caller; subaccount = null };
         let tokens : Nat = await get_balance(account);
         if (tokens <= 100000000) {
