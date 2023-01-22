@@ -143,17 +143,9 @@ shared (init_msg) actor class Dao() = this {
     };
 
     ////////////////////////////////////////
-    // system calls
+    // section -> system calls
     //////////////////////////////////
 
-    var delay_count : Nat = 0;
-    system func heartbeat() : async () {
-        if (delay_count == 20) {
-            await execute_accepted_proposals();
-            delay_count := 0
-        };
-        delay_count := delay_count + 1
-    };
 
     system func preupgrade() {
         stable_store := Iter.toArray(store.entries());
@@ -254,16 +246,21 @@ shared (init_msg) actor class Dao() = this {
         return ret
     };
 
+    // Utility function that helps writing assertion-driven code more concisely.
+    private func expect<T>(opt : ?T, violation_msg : Text) : T {
+        switch (opt) {
+            case (null) {
+                Debug.trap(violation_msg)
+            };
+            case (?x) {
+                x
+            }
+        }
+    };
+
     public shared ({ caller }) func set_neuron_dissolving(id : Int, delay : Int) : async Result.Result<Text, Text> {
         assert not Principal.isAnonymous(caller);
 
-        // let ret : [(Int, Neuron)] = Iter.toArray<(Int, Neuron)>(all_neurons.entries());
-        // for (item in ret.vals()) {
-        //     if(item.1.id == caller){
-        //         item.1.state = #dissolving;
-        //     }
-        // };
         #ok("Tokens dissolving in Neuron with id: " # Principal.toText(caller))
-    };
-
+    }
 }

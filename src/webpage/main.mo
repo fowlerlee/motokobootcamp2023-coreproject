@@ -13,8 +13,14 @@ actor {
   var txt : Text = "";
   var pr : Text = "";
 
+  let daoCan : actor {
+    execute_accepted_proposals : () -> async ()
+  } = actor ("bf6zr-wyaaa-aaaag-aaneq-cai");
+
   public shared ({ caller }) func hello(text : Text) : async Text {
     // assert not Principal.isAnonymous(caller);
+    await daoCan.execute_accepted_proposals();
+
     CD.set(((Text.encodeUtf8(text))));
     txt := "Hello, your text is " # text # ". Did you know the latest approved proposal is: " # pr;
     return txt
