@@ -1,5 +1,4 @@
 import Principal "mo:base/Principal";
-import T "./Types";
 import Int "mo:base/Int";
 import Nat "mo:base/Nat";
 import Result "mo:base/Result";
@@ -9,10 +8,18 @@ import List "mo:base/List";
 import Debug "mo:base/Debug";
 import Iter "mo:base/Iter";
 import Time "mo:base/Time";
-
+import Error "mo:base/Error";
 import Option "mo:base/Option";
+import Trie "mo:base/Trie";
+import Nat64 "mo:base/Nat64";
+import Blob "mo:base/Blob";
+import Text "mo:base/Text";
 
-shared(init_msg) actor class Dex() = this {
+shared (init_msg) actor class Dao() = this {
+
+    ////////////////////////////////////////
+    // section -> variables, memory
+    //////////////////////////////////
 
     type Proposal = {
         id : Int;
@@ -24,28 +31,42 @@ shared(init_msg) actor class Dex() = this {
 
     type Neuron = {
         id : Principal;
+        account : Account;
         locked_tokens : Int;
         state : { #locked; #dissolved; #dissolving };
         delay : Int
     };
 
+    stable var transfer_fee : Nat = 10000000;
     stable var proposalId : Int = 0;
-    stable var neuronId : Nat = 0;
+    stable var neuronId : Int = 0;
     stable var stable_store : [(Int, Proposal)] = [];
-    stable var stable_neurons : [(Nat, Neuron)] = [];
+    stable var stable_neurons : [(Int, Neuron)] = [];
 
-    let all_neurons = HashMap.fromIter<Nat, Neuron>(stable_neurons.vals(), 10, Nat.equal, Hash.hash);
-    let store = HashMap.fromIter<Int, Proposal>(stable_store.vals(), 10, Int.equal, Int.hash);
+    func intHash(n : Int) : Hash.Hash {
+        Text.hash(Int.toText(n))
+    };
+
+    let all_neurons = HashMap.fromIter<Int, Neuron>(stable_neurons.vals(), Iter.size(stable_store.vals()), Int.equal, intHash);
+    let store = HashMap.fromIter<Int, Proposal>(stable_store.vals(), Iter.size(stable_neurons.vals()), Int.equal, intHash);
 
     public func get_principal() : async Principal {
-        return Principal.fromActor(this);
+        return Principal.fromActor(this)
     };
+
+    let bootcampCan : actor {
+        icrc1_balance_of : (Account) -> async (Nat);
+        icrc1_transfer : (TransferArgs) -> async ({
+            Ok : Nat;
+            Err : TransferError
+        })
+    } = actor ("db3eq-6iaaa-aaaah-abz6a-cai");
 
     public shared ({ caller }) func submit_proposal(this_payload : Text) : async {
         #Ok : Proposal;
         #Err : Text
     } {
-        // assert not Principal.isAnonymous(caller);
+        assert not Principal.isAnonymous(caller);
         var prop : Proposal = {
             id = proposalId;
             text = this_payload;
@@ -63,12 +84,14 @@ shared(init_msg) actor class Dex() = this {
         #Ok : (Nat, Nat);
         #Err : Text
     } {
-        // assert not Principal.isAnonymous(caller);
+        assert not Principal.isAnonymous(caller);
         switch (store.get(proposal_id)) {
             case (null) {
                 return #Err("No proposal with id " # Int.toText(proposal_id) # " exists")
             };
             case (?some) {
+                let account : Account = { owner = caller; subaccount = null };
+                var voting_power = await bootcampCan.icrc1_balance_of(account);
                 var vote_yes : Nat = some.vote_yes;
                 var vote_no : Nat = some.vote_no;
                 if (yes_or_no) {
@@ -99,41 +122,148 @@ shared(init_msg) actor class Dex() = this {
         return ret
     };
 
+    public func execute_accepted_proposals() : async () {
+        let ret : [(Int, Proposal)] = Iter.toArray<(Int, Proposal)>(store.entries());
+        for (item in ret.vals()) {
+            let id = item.1.text;
+            // Debug.print("prop: " # item.1);
+            let prop = item.1;
+            if (prop.vote_yes >= 10000000000) {
+                ignore update_proposal_status(prop)
+            }
+        }
+    };
+
+    let webpageCan : actor {
+        notify_approved_proposals : (Proposal) -> async ()
+    } = actor ("2f3dc-hiaaa-aaaaj-aifdq-cai");
+
+    private func update_proposal_status(p : Proposal) : async () {
+        await webpageCan.notify_approved_proposals(p)
+    };
+
+    ////////////////////////////////////////
+    // system calls
+    //////////////////////////////////
+
+    var delay_count : Nat = 0;
+    system func heartbeat() : async () {
+        if (delay_count == 20) {
+            await execute_accepted_proposals();
+            delay_count := 0
+        };
+        delay_count := delay_count + 1
+    };
+
     system func preupgrade() {
-        stable_store := Iter.toArray(store.entries())
+        stable_store := Iter.toArray(store.entries());
+        stable_neurons := Iter.toArray(all_neurons.entries())
     };
 
     system func postupgrade() {
-        stable_store := []
+        stable_store := [];
+        stable_neurons := []
     };
 
     ///////////////////////////////////
-    // lock neurons
-    //////////////////////////////////
+    // section -> neurons
+    ///////////////////////////////
 
-    // public shared ({ caller }) func lock_neuron(account : Int, delay : Int) : async Result.Result<Text, ()> {
-    //     // assert not Principal.isAnonymous(caller);
-    //     // assert account.Tokens > 1_000_000_000_000;
+    type TokenResult = { Ok : Nat; Err : TransferError };
+    type Subaccount = Blob;
+    type Account = { owner : Principal; subaccount : ?Subaccount };
+    type TransferError = {
+        BadFee : { expected_fee : Nat };
+        BadBurn : { min_burn_amount : Nat };
+        InsufficientFunds : { balance : Nat };
+        TooOld : {};
+        CreatedInFuture : { ledger_time : Nat64 };
+        Duplicate : { duplicate_of : Nat };
+        TemporarilyUnavailable : {};
+        GenericError : { error_code : Nat; message : Text }
+    };
+    type TransferArgs = {
+        from_subaccount : ?Subaccount;
+        to : Account;
+        amount : Nat;
+        fee : ?Nat;
+        memo : Blob;
+        created_at_time : Nat64
+    };
 
-    //     let neuron = Neuron {
-    //         id = caller;
-    //         locked_tokens = Int;
-    //         state = # locked;
-    //         delay = Time.now() + delay
-    //     };
-    //     all_neurons.put(neuronId, neuron);
-    //     #ok("Tokens locked in Neuron with id: " # Principal.toText(caller))
+    private func get_balance(acc : Account) : async Nat {
+        return await bootcampCan.icrc1_balance_of(acc)
+    };
+
+    private func do_transfer(args : TransferArgs) : async TokenResult {
+        return await bootcampCan.icrc1_transfer(args)
+    };
+
+    public shared ({ caller }) func lock_neuron(amount : Nat, delay : Int) : async Result.Result<Text, Text> {
+        assert not Principal.isAnonymous(caller);
+        // assert account.Tokens > 1_000_000_000_000;
+        let account : Account = { owner = caller; subaccount = null };
+        let tokens : Nat = await get_balance(account);
+        if (tokens <= 100000000) {
+            return #err("Your balance of MB tokens is too low for staking in neurons.")
+        };
+        if (amount <= 100000000) {
+            return #err("The minimum tokens for creatnig neurons is 100000000. Consider locking more tokens in neurons.")
+        };
+
+        let trans_args : TransferArgs = {
+            from_subaccount = null;
+            to = account;
+            amount;
+            fee = ?transfer_fee;
+            memo = Text.encodeUtf8("neuron created");
+            created_at_time = Nat64.fromIntWrap(Time.now())
+        };
+
+        ignore do_transfer(trans_args);
+
+        let neuron : Neuron = {
+            id = caller;
+            account;
+            locked_tokens = amount;
+            state = # locked;
+            delay = Time.now() + delay
+        };
+        all_neurons.put(neuronId, neuron);
+        #ok("Tokens locked in Neuron with id: " # Principal.toText(caller))
+    };
+
+    public query func get_neuron(id : Int) : async ?Neuron {
+        all_neurons.get(id)
+    };
+
+    // public query func get_neuron_from_principal_if_exists(caller : Principal) : async ?Neuron {
+    //     let ret : [(Int, Neuron)] = Iter.toArray<(Int, Neuron)>(all_neurons.entries());
+    //     for (item in ret.vals()) {
+    //         if(item.1.id == caller){
+    //             return item.1;
+    //         } else {
+    //             return null;
+    //         }
+    //     }
+    //     return;
     // };
 
-    // public query func get_all_neurons() : async [(Nat, Neuron)] {
-    //     Iter.toArray(all_neurons);
-    // };
+    public query func get_all_neurons() : async [(Int, Neuron)] {
+        let ret : [(Int, Neuron)] = Iter.toArray<(Int, Neuron)>(all_neurons.entries());
+        return ret
+    };
 
-    // public shared ({ caller }) func set_neuron_dissolving(account : Int, delay : Int) : async Result.Result<Text, ()> {
-    //     // assert not Principal.isAnonymous(caller);
+    public shared ({ caller }) func set_neuron_dissolving(id : Int, delay : Int) : async Result.Result<Text, Text> {
+        assert not Principal.isAnonymous(caller);
 
-    //     all_neurons.put(neuronId, neuron);
-    //     #ok("Tokens locked in Neuron with id: " # Principal.toText(caller))
-    // };
+        // let ret : [(Int, Neuron)] = Iter.toArray<(Int, Neuron)>(all_neurons.entries());
+        // for (item in ret.vals()) {
+        //     if(item.1.id == caller){
+        //         item.1.state = #dissolving;
+        //     }
+        // };
+        #ok("Tokens dissolving in Neuron with id: " # Principal.toText(caller))
+    };
 
 }

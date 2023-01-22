@@ -1,3 +1,9 @@
+type Subaccount = blob;
+type Result = 
+ variant {
+   err: text;
+   ok: text;
+ };
 type Proposal = 
  record {
    id: int;
@@ -6,14 +12,34 @@ type Proposal =
    vote_no: nat;
    vote_yes: nat;
  };
-type Dex = 
+type Neuron = 
+ record {
+   account: Account;
+   delay: int;
+   id: principal;
+   locked_tokens: int;
+   state: variant {
+            dissolved;
+            dissolving;
+            locked;
+          };
+ };
+type Dao = 
  service {
+   execute_accepted_proposals: () -> ();
+   get_all_neurons: () -> (vec record {
+                                 int;
+                                 Neuron;
+                               }) query;
    get_all_proposals: () -> (vec record {
                                    int;
                                    Proposal;
                                  }) query;
+   get_neuron: (int) -> (opt Neuron) query;
    get_principal: () -> (principal);
    get_proposal: (int) -> (opt Proposal) query;
+   lock_neuron: (nat, int) -> (Result);
+   set_neuron_dissolving: (int, int) -> (Result);
    submit_proposal: (text) -> (variant {
                                  Err: text;
                                  Ok: Proposal;
@@ -26,4 +52,9 @@ type Dex =
                                };
                          });
  };
-service : () -> Dex
+type Account = 
+ record {
+   owner: principal;
+   subaccount: opt Subaccount;
+ };
+service : () -> Dao

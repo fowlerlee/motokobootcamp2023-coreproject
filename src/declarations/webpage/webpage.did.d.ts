@@ -14,6 +14,13 @@ export interface HttpResponse {
   'streaming_strategy' : [] | [StreamingStrategy],
   'status_code' : number,
 }
+export interface Proposal {
+  'id' : bigint,
+  'principal' : Principal,
+  'vote_yes' : bigint,
+  'text' : string,
+  'vote_no' : bigint,
+}
 export type StreamingCallback = ActorMethod<
   [StreamingCallbackToken],
   StreamingCallbackResponse
@@ -37,4 +44,5 @@ export interface _SERVICE {
   'certificate' : ActorMethod<[], [] | [Uint8Array]>,
   'hello' : ActorMethod<[string], string>,
   'http_request' : ActorMethod<[HttpRequest], HttpResponse>,
+  'notify_approved_proposals' : ActorMethod<[Proposal], undefined>,
 }

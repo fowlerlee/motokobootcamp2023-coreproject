@@ -32,10 +32,18 @@ export const idlFactory = ({ IDL }) => {
     'streaming_strategy' : IDL.Opt(StreamingStrategy),
     'status_code' : IDL.Nat16,
   });
+  const Proposal = IDL.Record({
+    'id' : IDL.Int,
+    'principal' : IDL.Principal,
+    'vote_yes' : IDL.Nat,
+    'text' : IDL.Text,
+    'vote_no' : IDL.Nat,
+  });
   return IDL.Service({
     'certificate' : IDL.Func([], [IDL.Opt(IDL.Vec(IDL.Nat8))], ['query']),
     'hello' : IDL.Func([IDL.Text], [IDL.Text], []),
     'http_request' : IDL.Func([HttpRequest], [HttpResponse], ['query']),
+    'notify_approved_proposals' : IDL.Func([Proposal], [], []),
   });
 };
 export const init = ({ IDL }) => { return []; };
