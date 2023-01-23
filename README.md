@@ -16,9 +16,6 @@ dfx deploy --network ic
 
 Core project for Motoko bootcamp of 2023.
 
-Interface/svelte provided by bootcamp.
-Motoko/backend written by author.
-
 Features :  
 	
 	submit_proposal
