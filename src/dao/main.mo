@@ -14,11 +14,12 @@ import Trie "mo:base/Trie";
 import Nat64 "mo:base/Nat64";
 import Blob "mo:base/Blob";
 import Text "mo:base/Text";
+import Buffer "mo:base/Buffer";
 
 shared (init_msg) actor class Dao() = this {
 
     ////////////////////////////////////////
-    // section -> variables, memory
+    // section -> types, variables, memory
     //////////////////////////////////
 
     type Proposal = {
@@ -191,7 +192,7 @@ shared (init_msg) actor class Dao() = this {
 
     public shared ({ caller }) func lock_neuron(amount : Nat, delay : Int) : async Result.Result<Text, Text> {
         assert not Principal.isAnonymous(caller);
-        
+
         let account : Account = { owner = caller; subaccount = null };
         let tokens : Nat = await get_balance(account);
         if (tokens <= 100000000) {
@@ -227,18 +228,6 @@ shared (init_msg) actor class Dao() = this {
         all_neurons.get(id)
     };
 
-    // public query func get_neuron_from_principal_if_exists(caller : Principal) : async ?Neuron {
-    //     let ret : [(Int, Neuron)] = Iter.toArray<(Int, Neuron)>(all_neurons.entries());
-    //     for (item in ret.vals()) {
-    //         if(item.1.id == caller){
-    //             return item.1;
-    //         } else {
-    //             return null;
-    //         }
-    //     }
-    //     return;
-    // };
-
     public query func get_all_neurons() : async [(Int, Neuron)] {
         let ret : [(Int, Neuron)] = Iter.toArray<(Int, Neuron)>(all_neurons.entries());
         return ret
@@ -256,9 +245,38 @@ shared (init_msg) actor class Dao() = this {
         }
     };
 
-    public shared ({ caller }) func set_neuron_dissolving(id : Int, delay : Int) : async Result.Result<Text, Text> {
+    public shared ({ caller }) func set_neuron_dissolving(id : Int) : async Result.Result<Text, Text> {
         assert not Principal.isAnonymous(caller);
 
         #ok("Tokens dissolving in Neuron with id: " # Principal.toText(caller))
     }
+
+    // BELOW IS UNDER CONSTRUCTION - please ignore - will move to a branch and continue there
+
+    // public query func get_neuron_from_principal_if_exists(caller : Principal) : async ?Neuron {
+    //     let ret : [(Int, Neuron)] = Iter.toArray<(Int, Neuron)>(all_neurons.entries());
+    //     for (item in ret.vals()) {
+    //         if(item.1.id == caller){
+    //             return item.1;
+    //         } else {
+    //             return null;
+    //         }
+    //     }
+    //     return;
+    // };
+
+    // public query func get_neuron_from_principal_if_exists(caller : Principal) : async [Neuron] {
+
+    //     // could probably allocate more but this is minimum
+    //     let buff : Buffer.Buffer<Neuron> = Buffer.Buffer(all_neurons.size());
+    //     for ((id, neuronz) in all_neurons.entries()) {
+    //         let b : Buffer.Buffer<Neuron> = Buffer.Buffer(all_neurons.size());
+    //         for (item in neuronz.vals()) {
+
+    //         };
+    //         buff.append(b)
+    //     };
+    //     Buffer.toArray(buff)
+    // };
+
 }
