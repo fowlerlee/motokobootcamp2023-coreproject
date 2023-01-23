@@ -30,6 +30,18 @@
         }
       }
     },
+    "identity": {
+      "main": "src/identity/identity.mo",
+      "type": "motoko",
+      "candid": "src/identity/identity_private.did",
+      "wasm": "./src/identity/identity.wasm",
+      "remote": {
+        "candid": "src/identity/identity_public.did",
+        "id": {
+          "ic":"rdmx6-jaaaa-aaaaa-aaadq-cai"
+        }
+      }
+    },
     "assets": {
       "dependencies": [
         "webpage",

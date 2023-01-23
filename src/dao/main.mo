@@ -249,7 +249,7 @@ shared (init_msg) actor class Dao() = this {
         assert not Principal.isAnonymous(caller);
 
         #ok("Tokens dissolving in Neuron with id: " # Principal.toText(caller))
-    }
+    };
 
     // BELOW IS UNDER CONSTRUCTION - please ignore - will move to a branch and continue there
 
@@ -278,5 +278,44 @@ shared (init_msg) actor class Dao() = this {
     //     };
     //     Buffer.toArray(buff)
     // };
+
+    ///////////////////////////////////
+    // section -> internet identity
+    ///////////////////////////////
+
+    public type Purpose = { #authentication; #recovery };
+    public type KeyType = { #platform; #seed_phrase; #cross_platform; #unknown };
+    public type PublicKey = [Nat8];
+    public type CredentialId = [Nat8];
+    public type DeviceKey = PublicKey;
+    public type DeviceData = {
+        alias : Text;
+        pubkey : DeviceKey;
+        key_type : KeyType;
+        purpose : Purpose;
+        credential_id : ?CredentialId
+    };
+    public type FrontendHostname = Text;
+    public type UserNumber = Nat64;
+    public type ChallengeKey = Text;
+    public type ChallengeResult = { key : ChallengeKey; chars : Text };
+    public type RegisterResponse = {
+        #bad_challenge;
+        #canister_full;
+        #registered : { user_number : UserNumber }
+    };
+
+    let identityCan : actor {
+        get_principal : shared query (
+            UserNumber,
+            FrontendHostname,
+        ) -> async Principal;
+        register : shared (DeviceData, ChallengeResult) -> async RegisterResponse
+    } = actor ("rdmx6-jaaaa-aaaaa-aaadq-cai");
+
+    public func get_principal_from_II(user_number : UserNumber, frontendname : FrontendHostname) : async Principal{
+        let p : Principal =  await identityCan.get_principal(user_number, frontendname);
+        return p;
+    };
 
 }
