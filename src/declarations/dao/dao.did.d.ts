@@ -13,7 +13,7 @@ export interface Dao {
   'get_principal' : ActorMethod<[], Principal>,
   'get_proposal' : ActorMethod<[bigint], [] | [Proposal]>,
   'lock_neuron' : ActorMethod<[bigint, bigint], Result>,
-  'set_neuron_dissolving' : ActorMethod<[bigint, bigint], Result>,
+  'set_neuron_dissolving' : ActorMethod<[bigint], Result>,
   'submit_proposal' : ActorMethod<
     [string],
     { 'Ok' : Proposal } |

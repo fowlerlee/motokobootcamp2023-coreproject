@@ -39,7 +39,7 @@ type Dao =
    get_principal: () -> (principal);
    get_proposal: (int) -> (opt Proposal) query;
    lock_neuron: (nat, int) -> (Result);
-   set_neuron_dissolving: (int, int) -> (Result);
+   set_neuron_dissolving: (int) -> (Result);
    submit_proposal: (text) -> (variant {
                                  Err: text;
                                  Ok: Proposal;

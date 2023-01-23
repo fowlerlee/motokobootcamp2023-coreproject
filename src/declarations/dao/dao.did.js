@@ -39,7 +39,7 @@ export const idlFactory = ({ IDL }) => {
     'get_principal' : IDL.Func([], [IDL.Principal], []),
     'get_proposal' : IDL.Func([IDL.Int], [IDL.Opt(Proposal)], ['query']),
     'lock_neuron' : IDL.Func([IDL.Nat, IDL.Int], [Result], []),
-    'set_neuron_dissolving' : IDL.Func([IDL.Int, IDL.Int], [Result], []),
+    'set_neuron_dissolving' : IDL.Func([IDL.Int], [Result], []),
     'submit_proposal' : IDL.Func(
         [IDL.Text],
         [IDL.Variant({ 'Ok' : Proposal, 'Err' : IDL.Text })],
