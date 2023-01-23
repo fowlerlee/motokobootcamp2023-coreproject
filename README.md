@@ -22,8 +22,9 @@ Features :
 	get_proposal
 	get_all_proposals
 	vote
-  create neurons
-  get_neurons
+  	create neurons
+  	get_neurons
+	
 	
 The view all proposals page doesnt work correct due to frontend call from svelte.
 
