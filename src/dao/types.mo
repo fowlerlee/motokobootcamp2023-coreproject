@@ -15,6 +15,21 @@ import Text "mo:base/Text";
 module {
 
     public type Tokens = Nat;
+    public let one_token = 10_000_000;
+    public let one_hundred_tokens = 10_000_000_000;
+    public let zeroToken = 0;
+    public type Result<T, E> = Result.Result<T, E>;
+    public type VoteArgs = { vote : Vote; proposal_id : Nat };
+
+    type Account = { owner : Principal; subaccount : ?Subaccount };
+    type Subaccount = Blob;
+    public type Neuron = {
+        id : Principal;
+        account : Account;
+        locked_tokens : Int;
+        state : { #locked; #dissolved; #dissolving };
+        delay : Int
+    };
 
     public type VotingError = {
         #notOpen;
@@ -25,21 +40,29 @@ module {
 
     public type Proposal = {
         id : Nat;
-        var voters : List.List<Principal>;
-        var state : ProposalState;
+        votes_no : Tokens;
+        voters : List.List<Principal>;
+        state : ProposalState;
         timestamp : Int;
         proposer : Principal;
-        var votes_yes : Tokens;
-        var votes_no : Tokens;
-        content : Text;
-        title : Text
+        votes_yes : Tokens;
+        payload : ProposalPayload
+    };
+
+    public type ProposalPayload = {
+        method : Text;
+        canister_id : Principal;
+        message : Blob
     };
 
     public type ProposalState = {
         #failed : Text;
         #open;
         #rejected;
+        #succeeded;
         #accepted
     };
 
+    public type TransferArgs = { to : Principal; amount : Tokens };
+    public type Vote = { #no; #yes }
 }
