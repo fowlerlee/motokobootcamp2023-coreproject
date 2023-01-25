@@ -22,6 +22,9 @@ export const idlFactory = ({ IDL }) => {
     'text' : IDL.Text,
     'vote_no' : IDL.Nat,
   });
+  const canister_id = IDL.Principal;
+  const UserNumber = IDL.Nat64;
+  const FrontendHostname = IDL.Text;
   const Result = IDL.Variant({ 'ok' : IDL.Text, 'err' : IDL.Text });
   const Dao = IDL.Service({
     'execute_accepted_proposals' : IDL.Func([], [], []),
@@ -35,8 +38,18 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Vec(IDL.Tuple(IDL.Int, Proposal))],
         ['query'],
       ),
+    'get_canister_status' : IDL.Func(
+        [canister_id],
+        [IDL.Record({ 'cycles' : IDL.Nat })],
+        [],
+      ),
     'get_neuron' : IDL.Func([IDL.Int], [IDL.Opt(Neuron)], ['query']),
     'get_principal' : IDL.Func([], [IDL.Principal], []),
+    'get_principal_from_II' : IDL.Func(
+        [UserNumber, FrontendHostname],
+        [IDL.Principal],
+        [],
+      ),
     'get_proposal' : IDL.Func([IDL.Int], [IDL.Opt(Proposal)], ['query']),
     'lock_neuron' : IDL.Func([IDL.Nat, IDL.Int], [Result], []),
     'set_neuron_dissolving' : IDL.Func([IDL.Int], [Result], []),

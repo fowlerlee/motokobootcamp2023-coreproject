@@ -54,7 +54,7 @@ module {
   public type user_id = Principal;
   public type utxo = { height : Nat32; value : satoshi; outpoint : outpoint };
   public type wasm_module = [Nat8];
-  public type Self = actor {
+  public type IC = actor {
     bitcoin_get_balance : shared get_balance_request -> async satoshi;
     bitcoin_get_current_fee_percentiles : shared get_current_fee_percentiles_request -> async [
         millisatoshi_per_byte

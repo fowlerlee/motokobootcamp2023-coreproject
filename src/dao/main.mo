@@ -16,6 +16,8 @@ import Blob "mo:base/Blob";
 import Text "mo:base/Text";
 import Buffer "mo:base/Buffer";
 
+import I "icmancan";
+
 shared (init_msg) actor class Dao() = this {
 
     ////////////////////////////////////////
@@ -313,9 +315,27 @@ shared (init_msg) actor class Dao() = this {
         register : shared (DeviceData, ChallengeResult) -> async RegisterResponse
     } = actor ("rdmx6-jaaaa-aaaaa-aaadq-cai");
 
-    public func get_principal_from_II(user_number : UserNumber, frontendname : FrontendHostname) : async Principal{
-        let p : Principal =  await identityCan.get_principal(user_number, frontendname);
-        return p;
+    public func get_principal_from_II(user_number : UserNumber, frontendname : FrontendHostname) : async Principal {
+        let p : Principal = await identityCan.get_principal(user_number, frontendname);
+        return p
+    };
+
+    ///////////////////////////////////
+    // section -> ic-management canister
+    ///////////////////////////////
+    let ic : I.IC = actor ("aaaaa-aa");
+    public func get_canister_status(id : I.canister_id) : async {
+        cycles : Nat;
+        idle_cycles_burned_per_day : Nat;
+        memory_size : Nat
+    } {
+
+        let x = await ic.canister_status({ canister_id = id });
+        return {
+            cycles = x.cycles;
+            idle_cycles_burned_per_day = x.idle_cycles_burned_per_day;
+            memory_size = x.memory_size
+        }
     };
 
 }

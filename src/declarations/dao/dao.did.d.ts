@@ -9,8 +9,13 @@ export interface Dao {
   'execute_accepted_proposals' : ActorMethod<[], undefined>,
   'get_all_neurons' : ActorMethod<[], Array<[bigint, Neuron]>>,
   'get_all_proposals' : ActorMethod<[], Array<[bigint, Proposal]>>,
+  'get_canister_status' : ActorMethod<[canister_id], { 'cycles' : bigint }>,
   'get_neuron' : ActorMethod<[bigint], [] | [Neuron]>,
   'get_principal' : ActorMethod<[], Principal>,
+  'get_principal_from_II' : ActorMethod<
+    [UserNumber, FrontendHostname],
+    Principal
+  >,
   'get_proposal' : ActorMethod<[bigint], [] | [Proposal]>,
   'lock_neuron' : ActorMethod<[bigint, bigint], Result>,
   'set_neuron_dissolving' : ActorMethod<[bigint], Result>,
@@ -25,6 +30,7 @@ export interface Dao {
       { 'Err' : string }
   >,
 }
+export type FrontendHostname = string;
 export interface Neuron {
   'id' : Principal,
   'state' : { 'locked' : null } |
@@ -44,4 +50,6 @@ export interface Proposal {
 export type Result = { 'ok' : string } |
   { 'err' : string };
 export type Subaccount = Uint8Array;
+export type UserNumber = bigint;
+export type canister_id = Principal;
 export interface _SERVICE extends Dao {}

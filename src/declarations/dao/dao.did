@@ -1,3 +1,5 @@
+type canister_id = principal;
+type UserNumber = nat64;
 type Subaccount = blob;
 type Result = 
  variant {
@@ -24,6 +26,7 @@ type Neuron =
             locked;
           };
  };
+type FrontendHostname = text;
 type Dao = 
  service {
    execute_accepted_proposals: () -> ();
@@ -35,8 +38,10 @@ type Dao =
                                    int;
                                    Proposal;
                                  }) query;
+   get_canister_status: (canister_id) -> (record {cycles: nat;});
    get_neuron: (int) -> (opt Neuron) query;
    get_principal: () -> (principal);
+   get_principal_from_II: (UserNumber, FrontendHostname) -> (principal);
    get_proposal: (int) -> (opt Proposal) query;
    lock_neuron: (nat, int) -> (Result);
    set_neuron_dissolving: (int) -> (Result);
