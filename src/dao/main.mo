@@ -279,15 +279,43 @@ shared (init_msg) actor class Dao() = this {
         let ret : [(Int, T.Neuron)] = Iter.toArray<(Int, T.Neuron)>(all_neurons.entries());
         for ((item, neuron) in ret.vals()) {
             if (neuron.id == caller) {
-                let updated_neuron : T.Neuron = {
-                    id = caller;
-                    account = neuron.account;
-                    locked_tokens = neuron.locked_tokens;
-                    state = # dissolving;
-                    delay = 0
-                };
-                all_neurons.put(id, updated_neuron)
+
+                if (neuron.state == #dissolved) {
+                    ignore transfer_to_user_account(neuron)
+                } else {
+                    let updated_neuron : T.Neuron = {
+                        id = caller;
+                        account = neuron.account;
+                        locked_tokens = neuron.locked_tokens;
+                        state = # dissolving;
+                        delay = 0
+                    };
+                    all_neurons.put(id, updated_neuron)
+                }
+
             } else {}
+        }
+    };
+
+    public func transfer_to_user_account(n : T.Neuron) : async T.Result<Text, Text> {
+        let user_id = n.id;
+        let account : Account = { owner = user_id; subaccount = null };
+        let args : TransferArgs = {
+            from_subaccount = null;
+            to = account;
+            amount = n.locked_tokens;
+            fee = null;
+            memo = Text.encodeUtf8("neuron dissolved for ");
+            created_at_time = Nat64.fromIntWrap(Time.now())
+        };
+
+        switch (do_transfer(args)) {
+            case (Ok) {
+                #ok("The payment to the user succeeded")
+            };
+            case (Err) {
+                #err("The payment of tokens to the wallet of user failed")
+            }
         }
     };
 

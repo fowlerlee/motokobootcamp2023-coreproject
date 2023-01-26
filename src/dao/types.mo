@@ -26,7 +26,7 @@ module {
     public type Neuron = {
         id : Principal;
         account : Account;
-        locked_tokens : Int;
+        locked_tokens : Nat;
         state : { #locked; #dissolved; #dissolving };
         delay : Int
     };
