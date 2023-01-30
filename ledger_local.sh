@@ -1,3 +1,4 @@
+dfx start --background
 dfx identity use default
 export LEDGER_ACC=$(dfx ledger account-id)
 

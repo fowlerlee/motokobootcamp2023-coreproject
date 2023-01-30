@@ -31,6 +31,7 @@ shared (init_msg) actor class Dao() = this {
     stable var neuronId : Int = 0;
     stable var stable_store : [(Int, T.Proposal)] = [];
     stable var stable_neurons : [(Int, T.Neuron)] = [];
+    stable var stable_accounts : [(Principal, Account)] = [];
 
     func intHash(n : Int) : Hash.Hash {
         Text.hash(Int.toText(n))
@@ -38,6 +39,7 @@ shared (init_msg) actor class Dao() = this {
 
     let all_neurons = HashMap.fromIter<Int, T.Neuron>(stable_neurons.vals(), Iter.size(stable_store.vals()), Int.equal, intHash);
     let store = HashMap.fromIter<Int, T.Proposal>(stable_store.vals(), Iter.size(stable_neurons.vals()), Int.equal, intHash);
+    let all_accounts = HashMap.fromIter<Principal, Account>(stable_accounts.vals(), Iter.size(stable_accounts.vals()), Principal.equal, Principal.hash);
 
     public func get_principal() : async Principal {
         return Principal.fromActor(this)
@@ -168,6 +170,23 @@ shared (init_msg) actor class Dao() = this {
         };
         store.put(proposal.id, updated);
         ignore webpageCan.notify_approved_proposals(proposal)
+    };
+
+    ///////////////////////////////////////
+    // section -> register user with account
+    //////////////////////////////////
+
+    public shared ({ caller }) func register_user(principal : Principal, account : Account) : async Result.Result<Text, Text> {
+        assert not Principal.isAnonymous(caller);
+
+        switch (all_accounts.get(principal)) {
+            case (?some) { #err("user already exists" )};
+            case (null) {
+                all_accounts.put(principal, account);
+                #ok("user with account has been registered");
+            }
+        };
+
     };
 
     ////////////////////////////////////////
