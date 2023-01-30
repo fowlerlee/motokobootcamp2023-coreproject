@@ -195,12 +195,14 @@ shared (init_msg) actor class Dao() = this {
 
     system func preupgrade() {
         stable_store := Iter.toArray(store.entries());
-        stable_neurons := Iter.toArray(all_neurons.entries())
+        stable_neurons := Iter.toArray(all_neurons.entries());
+        stable_accounts := Iter.toArray(all_accounts.entries());
     };
 
     system func postupgrade() {
         stable_store := [];
-        stable_neurons := []
+        stable_neurons := [];
+        stable_accounts := [];
     };
 
     ///////////////////////////////////
