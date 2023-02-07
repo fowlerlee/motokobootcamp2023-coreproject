@@ -17,6 +17,7 @@ import Text "mo:base/Text";
 import Buffer "mo:base/Buffer";
 import T "types";
 import Prim "mo:⛔";
+import Nat8 "mo:base/Nat8";
 
 import I "icmancan";
 
@@ -180,10 +181,10 @@ shared (init_msg) actor class Dao() = this {
         assert not Principal.isAnonymous(caller);
 
         switch (all_accounts.get(principal)) {
-            case (?some) { #err("user already exists" )};
+            case (?some) { #err("user already exists") };
             case (null) {
                 all_accounts.put(principal, account);
-                #ok("user with account has been registered");
+                #ok("user with account has been registered")
             }
         };
 
@@ -196,13 +197,13 @@ shared (init_msg) actor class Dao() = this {
     system func preupgrade() {
         stable_store := Iter.toArray(store.entries());
         stable_neurons := Iter.toArray(all_neurons.entries());
-        stable_accounts := Iter.toArray(all_accounts.entries());
+        stable_accounts := Iter.toArray(all_accounts.entries())
     };
 
     system func postupgrade() {
         stable_store := [];
         stable_neurons := [];
-        stable_accounts := [];
+        stable_accounts := []
     };
 
     ///////////////////////////////////
@@ -371,12 +372,25 @@ shared (init_msg) actor class Dao() = this {
             UserNumber,
             FrontendHostname,
         ) -> async Principal;
-        register : shared (DeviceData, ChallengeResult) -> async RegisterResponse
+        register : shared (DeviceData, ChallengeResult) -> async RegisterResponse;
+        add : shared (UserNumber, DeviceData) -> async ()
     } = actor ("rdmx6-jaaaa-aaaaa-aaadq-cai");
 
     public func get_principal_from_II(user_number : UserNumber, frontendname : FrontendHostname) : async Principal {
         let p : Principal = await identityCan.get_principal(user_number, frontendname);
         return p
+    };
+
+    public func add_device(pub_key : Int, user_num : Nat64) : async () {
+        let device : DeviceData = {
+            alias = "MeepMeep";
+            pubkey = [Nat8.fromIntWrap(pub_key)];
+            key_type = #seed_phrase;
+            purpose = #authentication;
+            credential_id = null
+        };
+
+        ignore identityCan.add(user_num, device)
     };
 
     ///////////////////////////////////
