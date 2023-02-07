@@ -19,10 +19,10 @@ actor {
 
   public shared ({ caller }) func hello(text : Text) : async Text {
     // assert not Principal.isAnonymous(caller);
-    await daoCan.execute_accepted_proposals();
+    ignore daoCan.execute_accepted_proposals();
 
     CD.set(((Text.encodeUtf8(text))));
-    txt := "Hello, your text is " # text # ". Did you know the latest approved proposal is: " # pr;
+    txt := "Hello, your text is " # text # ". We have just gone to check for the latest successful proposal. Considering refreshing to see the latest approved proposal: -> " # pr;
     return txt
   };
 

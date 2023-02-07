@@ -1,0 +1,101 @@
+type canister_id = principal;
+type UserNumber = nat64;
+type Tokens = nat;
+type Subaccount = blob;
+type Result__1 = 
+ variant {
+   err: text;
+   ok: text;
+ };
+type Result_1 = 
+ variant {
+   err: text;
+   ok: text;
+ };
+type Result = 
+ variant {
+   err: text;
+   ok: record {
+         nat;
+         nat;
+       };
+ };
+type ProposalState = 
+ variant {
+   accepted;
+   failed: text;
+   open;
+   rejected;
+   succeeded;
+ };
+type ProposalPayload = 
+ record {
+   canister_id: principal;
+   message: blob;
+   method: text;
+ };
+type Proposal = 
+ record {
+   id: nat;
+   payload: ProposalPayload;
+   proposer: principal;
+   state: ProposalState;
+   timestamp: int;
+   voters: List;
+   votes_no: Tokens;
+   votes_yes: Tokens;
+ };
+type Neuron = 
+ record {
+   account: Account;
+   delay: int;
+   id: principal;
+   locked_tokens: nat;
+   state: variant {
+            dissolved;
+            dissolving;
+            locked;
+          };
+ };
+type List = 
+ opt record {
+       principal;
+       List;
+     };
+type FrontendHostname = text;
+type Dao = 
+ service {
+   execute_accepted_proposals: () -> ();
+   get_all_neurons: () -> (vec record {
+                                 int;
+                                 Neuron;
+                               }) query;
+   get_all_proposals: () -> (vec record {
+                                   int;
+                                   Proposal;
+                                 }) query;
+   get_canister_status: (canister_id) ->
+    (record {
+       cycles: nat;
+       idle_cycles_burned_per_day: nat;
+       memory_size: nat;
+     });
+   get_neuron: (int) -> (opt Neuron) query;
+   get_principal: () -> (principal);
+   get_principal_from_II: (UserNumber, FrontendHostname) -> (principal);
+   get_proposal: (int) -> (opt Proposal) query;
+   lock_neuron: (nat, int) -> (Result__1);
+   set_neuron_dissolving: (int) -> ();
+   submit_proposal: (ProposalPayload) -> (variant {
+                                            Err: text;
+                                            Ok: Proposal;
+                                          });
+   transfer_to_user_account: (Neuron) -> (Result_1);
+   vote: (int, bool) -> (Result);
+ };
+type Account = 
+ record {
+   owner: principal;
+   subaccount: opt Subaccount;
+ };
+service : () -> Dao

@@ -15,6 +15,11 @@ import Nat64 "mo:base/Nat64";
 import Blob "mo:base/Blob";
 import Text "mo:base/Text";
 import Buffer "mo:base/Buffer";
+import T "types";
+import Prim "mo:⛔";
+import Nat8 "mo:base/Nat8";
+
+import I "icmancan";
 
 shared (init_msg) actor class Dao() = this {
 
@@ -22,34 +27,20 @@ shared (init_msg) actor class Dao() = this {
     // section -> types, variables, memory
     //////////////////////////////////
 
-    type Proposal = {
-        id : Int;
-        text : Text;
-        principal : Principal;
-        vote_yes : Nat;
-        vote_no : Nat
-    };
-
-    type Neuron = {
-        id : Principal;
-        account : Account;
-        locked_tokens : Int;
-        state : { #locked; #dissolved; #dissolving };
-        delay : Int
-    };
-
-    stable var transfer_fee : Nat = 10000000;
-    stable var proposalId : Int = 0;
+    stable var transfer_fee : Nat = 10_000_000;
+    stable var next_proposal_id : Nat = 0;
     stable var neuronId : Int = 0;
-    stable var stable_store : [(Int, Proposal)] = [];
-    stable var stable_neurons : [(Int, Neuron)] = [];
+    stable var stable_store : [(Int, T.Proposal)] = [];
+    stable var stable_neurons : [(Int, T.Neuron)] = [];
+    stable var stable_accounts : [(Principal, Account)] = [];
 
     func intHash(n : Int) : Hash.Hash {
         Text.hash(Int.toText(n))
     };
 
-    let all_neurons = HashMap.fromIter<Int, Neuron>(stable_neurons.vals(), Iter.size(stable_store.vals()), Int.equal, intHash);
-    let store = HashMap.fromIter<Int, Proposal>(stable_store.vals(), Iter.size(stable_neurons.vals()), Int.equal, intHash);
+    let all_neurons = HashMap.fromIter<Int, T.Neuron>(stable_neurons.vals(), Iter.size(stable_store.vals()), Int.equal, intHash);
+    let store = HashMap.fromIter<Int, T.Proposal>(stable_store.vals(), Iter.size(stable_neurons.vals()), Int.equal, intHash);
+    let all_accounts = HashMap.fromIter<Principal, Account>(stable_accounts.vals(), Iter.size(stable_accounts.vals()), Principal.equal, Principal.hash);
 
     public func get_principal() : async Principal {
         return Principal.fromActor(this)
@@ -63,83 +54,140 @@ shared (init_msg) actor class Dao() = this {
         })
     } = actor ("db3eq-6iaaa-aaaah-abz6a-cai");
 
-    public shared ({ caller }) func submit_proposal(this_payload : Text) : async {
-        #Ok : Proposal;
+    public shared ({ caller }) func submit_proposal(payload : T.ProposalPayload) : async {
+        #Ok : T.Proposal;
         #Err : Text
     } {
         assert not Principal.isAnonymous(caller);
-        var prop : Proposal = {
-            id = proposalId;
-            text = this_payload;
-            principal = caller;
-            vote_yes = 0;
-            vote_no = 0
+        var voting_power = await bootcampCan.icrc1_balance_of({
+            owner = caller;
+            subaccount = null
+        });
+        if (voting_power < 10_000_000_000) {
+            return #Err("You must hold at least 1 MB token to create a proposal.")
+        };
+        let proposal_id = next_proposal_id;
+        next_proposal_id += 1;
+
+        var prop : T.Proposal = {
+            id = proposal_id;
+            timestamp = Time.now();
+            proposer = caller;
+            payload;
+            state = #open;
+            votes_yes = 0;
+            votes_no = 0;
+            voters = List.nil()
         };
 
-        store.put(proposalId, prop);
-        proposalId += 1;
+        store.put(proposal_id, prop);
         return #Ok(prop)
     };
 
-    public shared ({ caller }) func vote(proposal_id : Int, yes_or_no : Bool) : async {
-        #Ok : (Nat, Nat);
-        #Err : Text
-    } {
+    public shared ({ caller }) func vote(proposal_id : Int, yes_or_no : Bool) : async T.Result<(Nat, Nat), Text> {
         assert not Principal.isAnonymous(caller);
+
         switch (store.get(proposal_id)) {
             case (null) {
-                return #Err("No proposal with id " # Int.toText(proposal_id) # " exists")
+                return #err("No proposal with id " # Int.toText(proposal_id) # " exists")
             };
             case (?some) {
+                var state = some.state;
+                if (state != #open) {
+                    return #err("Proposal " # Int.toText(proposal_id) # " is not open for voting")
+                };
+
+                if (List.some(some.voters, func(e : Principal) : Bool = e == caller)) {
+                    return #err("Already voted")
+                };
                 let account : Account = { owner = caller; subaccount = null };
                 var voting_power = await bootcampCan.icrc1_balance_of(account);
-                var vote_yes : Nat = some.vote_yes;
-                var vote_no : Nat = some.vote_no;
-                if (yes_or_no) {
-                    vote_yes := 1000
-                } else {
-                    vote_no := 1000
-                };
-                var prop : Proposal = {
-                    id = some.id;
-                    text = some.text;
-                    principal = some.principal;
-                    vote_yes;
-                    vote_no
-                };
-                store.put(some.id, prop);
+                var votes_yes : Nat = some.votes_yes;
+                var votes_no : Nat = some.votes_no;
 
-                return #Ok(prop.vote_yes, prop.vote_no)
+                if (yes_or_no) {
+                    votes_yes := 1000
+                } else {
+                    votes_no := 1000
+                };
+
+                let voters = List.push(caller, some.voters);
+                if (votes_yes >= T.one_hundred_tokens) {
+                    state := #accepted
+                };
+                if (votes_no >= T.one_hundred_tokens) {
+                    state := #rejected
+                };
+
+                let updated_proposal = {
+                    id = some.id;
+                    votes_yes;
+                    votes_no;
+                    voters;
+                    state;
+                    timestamp = some.timestamp;
+                    proposer = some.proposer;
+                    payload = some.payload
+                };
+                store.put(some.id, updated_proposal);
+
+                return #ok(updated_proposal.votes_yes, updated_proposal.votes_no)
             }
         }
     };
 
-    public query func get_proposal(id : Int) : async ?Proposal {
+    public query func get_proposal(id : Int) : async ?T.Proposal {
         store.get(id)
     };
 
-    public query func get_all_proposals() : async [(Int, Proposal)] {
-        let ret : [(Int, Proposal)] = Iter.toArray<(Int, Proposal)>(store.entries());
+    public query func get_all_proposals() : async [(Int, T.Proposal)] {
+        let ret : [(Int, T.Proposal)] = Iter.toArray<(Int, T.Proposal)>(store.entries());
         return ret
     };
 
     public func execute_accepted_proposals() : async () {
-        let ret : [(Int, Proposal)] = Iter.toArray<(Int, Proposal)>(store.entries());
-        for (item in ret.vals()) {
-            let id = item.1.text;
-            let prop = item.1;
-            if (prop.vote_yes >= 10000000000) {
-                ignore update_proposal_status(prop)
+        let ret : [(Int, T.Proposal)] = Iter.toArray<(Int, T.Proposal)>(store.entries());
+        for ((item, proposal) in ret.vals()) {
+            if (proposal.votes_yes >= 10_000_000_000) {
+                ignore update_proposal_status(proposal, #succeeded)
             }
         }
     };
 
     let webpageCan : actor {
-        notify_approved_proposals : (Proposal) -> async ()
+        notify_approved_proposals : (T.Proposal) -> async ()
     } = actor ("2f3dc-hiaaa-aaaaj-aifdq-cai");
 
-    private func update_proposal_status(p : Proposal) : async () {
-        await webpageCan.notify_approved_proposals(p)
+    private func update_proposal_status(proposal : T.Proposal, state : T.ProposalState) : async () {
+        let updated = {
+            state;
+            id = proposal.id;
+            votes_yes = proposal.votes_yes;
+            votes_no = proposal.votes_no;
+            voters = proposal.voters;
+            timestamp = proposal.timestamp;
+            proposer = proposal.proposer;
+            payload = proposal.payload
+        };
+        store.put(proposal.id, updated);
+        ignore webpageCan.notify_approved_proposals(proposal)
+    };
+
+    ///////////////////////////////////////
+    // section -> register user with account
+    //////////////////////////////////
+
+    public shared ({ caller }) func register_user(principal : Principal, account : Account) : async Result.Result<Text, Text> {
+        assert not Principal.isAnonymous(caller);
+
+        switch (all_accounts.get(principal)) {
+            case (?some) { #err("user already exists") };
+            case (null) {
+                all_accounts.put(principal, account);
+                #ok("user with account has been registered")
+            }
+        };
+
     };
 
     ////////////////////////////////////////
@@ -148,12 +196,14 @@ shared (init_msg) actor class Dao() = this {
 
     system func preupgrade() {
         stable_store := Iter.toArray(store.entries());
-        stable_neurons := Iter.toArray(all_neurons.entries())
+        stable_neurons := Iter.toArray(all_neurons.entries());
+        stable_accounts := Iter.toArray(all_accounts.entries())
     };
 
     system func postupgrade() {
         stable_store := [];
-        stable_neurons := []
+        stable_neurons := [];
+        stable_accounts := []
     };
 
     ///////////////////////////////////
@@ -195,10 +245,10 @@ shared (init_msg) actor class Dao() = this {
 
         let account : Account = { owner = caller; subaccount = null };
         let tokens : Nat = await get_balance(account);
-        if (tokens <= 100000000) {
+        if (tokens <= 100_000_000) {
             return #err("Your balance of MB tokens is too low for staking in neurons.")
         };
-        if (amount <= 100000000) {
+        if (amount <= 100_000_000) {
             return #err("The minimum tokens for creatnig neurons is 100000000. Consider locking more tokens in neurons.")
         };
 
@@ -213,7 +263,7 @@ shared (init_msg) actor class Dao() = this {
 
         ignore do_transfer(trans_args);
 
-        let neuron : Neuron = {
+        let neuron : T.Neuron = {
             id = caller;
             account;
             locked_tokens = amount;
@@ -224,12 +274,12 @@ shared (init_msg) actor class Dao() = this {
         #ok("Tokens locked in Neuron with id: " # Principal.toText(caller))
     };
 
-    public query func get_neuron(id : Int) : async ?Neuron {
+    public query func get_neuron(id : Int) : async ?T.Neuron {
         all_neurons.get(id)
     };
 
-    public query func get_all_neurons() : async [(Int, Neuron)] {
-        let ret : [(Int, Neuron)] = Iter.toArray<(Int, Neuron)>(all_neurons.entries());
+    public query func get_all_neurons() : async [(Int, T.Neuron)] {
+        let ret : [(Int, T.Neuron)] = Iter.toArray<(Int, T.Neuron)>(all_neurons.entries());
         return ret
     };
 
@@ -245,38 +295,121 @@ shared (init_msg) actor class Dao() = this {
         }
     };
 
-    public shared ({ caller }) func set_neuron_dissolving(id : Int) : async Result.Result<Text, Text> {
+    public shared ({ caller }) func set_neuron_dissolving(id : Int) : async () {
         assert not Principal.isAnonymous(caller);
 
-        #ok("Tokens dissolving in Neuron with id: " # Principal.toText(caller))
-    }
+        let ret : [(Int, T.Neuron)] = Iter.toArray<(Int, T.Neuron)>(all_neurons.entries());
+        for ((item, neuron) in ret.vals()) {
+            if (neuron.id == caller) {
 
-    // BELOW IS UNDER CONSTRUCTION - please ignore - will move to a branch and continue there
+                if (neuron.state == #dissolved) {
+                    ignore transfer_to_user_account(neuron)
+                } else {
+                    let updated_neuron : T.Neuron = {
+                        id = caller;
+                        account = neuron.account;
+                        locked_tokens = neuron.locked_tokens;
+                        state = # dissolving;
+                        delay = 0
+                    };
+                    all_neurons.put(id, updated_neuron)
+                }
 
-    // public query func get_neuron_from_principal_if_exists(caller : Principal) : async ?Neuron {
-    //     let ret : [(Int, Neuron)] = Iter.toArray<(Int, Neuron)>(all_neurons.entries());
-    //     for (item in ret.vals()) {
-    //         if(item.1.id == caller){
-    //             return item.1;
-    //         } else {
-    //             return null;
-    //         }
-    //     }
-    //     return;
-    // };
+            } else {}
+        }
+    };
 
-    // public query func get_neuron_from_principal_if_exists(caller : Principal) : async [Neuron] {
+    public func transfer_to_user_account(n : T.Neuron) : async T.Result<Text, Text> {
+        let user_id = n.id;
+        let account : Account = { owner = user_id; subaccount = null };
+        let args : TransferArgs = {
+            from_subaccount = null;
+            to = account;
+            amount = n.locked_tokens;
+            fee = null;
+            memo = Text.encodeUtf8("neuron dissolved for ");
+            created_at_time = Nat64.fromIntWrap(Time.now())
+        };
 
-    //     // could probably allocate more but this is minimum
-    //     let buff : Buffer.Buffer<Neuron> = Buffer.Buffer(all_neurons.size());
-    //     for ((id, neuronz) in all_neurons.entries()) {
-    //         let b : Buffer.Buffer<Neuron> = Buffer.Buffer(all_neurons.size());
-    //         for (item in neuronz.vals()) {
+        switch (do_transfer(args)) {
+            case (Ok) {
+                #ok("The payment to the user succeeded")
+            };
+            case (Err) {
+                #err("The payment of tokens to the wallet of user failed")
+            }
+        }
+    };
 
-    //         };
-    //         buff.append(b)
-    //     };
-    //     Buffer.toArray(buff)
-    // };
+    ///////////////////////////////////
+    // section -> internet identity
+    ///////////////////////////////
+
+    public type Purpose = { #authentication; #recovery };
+    public type KeyType = { #platform; #seed_phrase; #cross_platform; #unknown };
+    public type PublicKey = [Nat8];
+    public type CredentialId = [Nat8];
+    public type DeviceKey = PublicKey;
+    public type DeviceData = {
+        alias : Text;
+        pubkey : DeviceKey;
+        key_type : KeyType;
+        purpose : Purpose;
+        credential_id : ?CredentialId
+    };
+    public type FrontendHostname = Text;
+    public type UserNumber = Nat64;
+    public type ChallengeKey = Text;
+    public type ChallengeResult = { key : ChallengeKey; chars : Text };
+    public type RegisterResponse = {
+        #bad_challenge;
+        #canister_full;
+        #registered : { user_number : UserNumber }
+    };
+
+    let identityCan : actor {
+        get_principal : shared query (
+            UserNumber,
+            FrontendHostname,
+        ) -> async Principal;
+        register : shared (DeviceData, ChallengeResult) -> async RegisterResponse;
+        add : shared (UserNumber, DeviceData) -> async ()
+    } = actor ("rdmx6-jaaaa-aaaaa-aaadq-cai");
+
+    public func get_principal_from_II(user_number : UserNumber, frontendname : FrontendHostname) : async Principal {
+        let p : Principal = await identityCan.get_principal(user_number, frontendname);
+        return p
+    };
+
+    public func add_device(pub_key : Int, user_num : Nat64) : async () {
+        let device : DeviceData = {
+            alias = "MeepMeep";
+            pubkey = [Nat8.fromIntWrap(pub_key)];
+            key_type = #seed_phrase;
+            purpose = #authentication;
+            credential_id = null
+        };
+
+        ignore identityCan.add(user_num, device)
+    };
+
+    ///////////////////////////////////
+    // section -> ic-management canister
+    ///////////////////////////////
+
+    let ic : I.IC = actor ("aaaaa-aa");
+    public func get_canister_status(id : I.canister_id) : async {
+        cycles : Nat;
+        idle_cycles_burned_per_day : Nat;
+        memory_size : Nat
+    } {
+
+        let x = await ic.canister_status({ canister_id = id });
+        return {
+            cycles = x.cycles;
+            idle_cycles_burned_per_day = x.idle_cycles_burned_per_day;
+            memory_size = x.memory_size
+        }
+    };
 
 }

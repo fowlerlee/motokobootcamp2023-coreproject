@@ -21,12 +21,24 @@
     "ledger": {
       "main": "src/ledger/ledger.mo",
       "type": "motoko",
-      "candid": "src/ledger/ledger.private.did",
+      "candid": "src/ledger/ledger.public.did",
       "wasm": "./src/ledger/ledger.wasm",
       "remote": {
         "candid": "src/ledger/ledger.public.did",
         "id": {
           "ic":"mc6ru-gyaaa-aaaar-qaaaq-cai"
+        }
+      }
+    },
+    "identity": {
+      "main": "src/identity/identity.mo",
+      "type": "motoko",
+      "candid": "src/identity/identity_private.did",
+      "wasm": "./src/identity/identity.wasm",
+      "remote": {
+        "candid": "src/identity/identity_public.did",
+        "id": {
+          "ic":"rdmx6-jaaaa-aaaaa-aaadq-cai"
         }
       }
     },
@@ -47,6 +59,9 @@
   "defaults": {
     "build": {
       "packtool": ""
+    },
+    "replica": {
+      "subnet_type":"system"
     }
   },
   "networks": {
