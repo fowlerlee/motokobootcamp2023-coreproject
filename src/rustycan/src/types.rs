@@ -6,7 +6,7 @@ use std::collections::{BTreeMap, BTreeSet};
 pub type OrderId = u32;
 
 #[allow(non_snake_case)]
-#[derive(Clone, Serialize, Debug, CandidType, Deserialize, PartialEq, PartialOrd)]
+#[derive(Clone, Serialize, Debug, CandidType, Deserialize, PartialEq, PartialOrd, Ord, Eq)]
 pub struct Order {
     pub id: OrderId,
     pub owner: Principal,
@@ -27,8 +27,8 @@ pub struct Order {
 
 #[derive(Clone, Serialize, CandidType, Deserialize)]
 pub struct Store {
-    pub store: Vec<Order>,
-    pub users: Vec<Principal>,
+    pub store: BTreeSet<Order>,
+    pub users: BTreeSet<Principal>,
 }
 
 // #[derive(CandidType)]

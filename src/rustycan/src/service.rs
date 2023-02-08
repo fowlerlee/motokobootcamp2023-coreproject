@@ -1,13 +1,13 @@
 
-
+use std::collections::{BTreeMap, BTreeSet};
 use ic_cdk::export::Principal;
 use crate::types::Store;
 
 impl Default for Store {
     fn default() -> Self {
         Store {
-            store: Vec::new(),
-            users: Vec::new(),
+            store: BTreeSet::new(),
+            users: BTreeSet::new(),
         }
     }
 }

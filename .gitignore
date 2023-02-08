@@ -7,3 +7,4 @@ dist-ssr
 
 //rustycan
 src/rustycan/target
+target/
