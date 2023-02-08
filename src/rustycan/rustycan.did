@@ -1,0 +1,21 @@
+type Principal = principal;
+type OrderId = nat32;
+
+
+type Order = record {
+    id: OrderId;
+    owner: principal;
+    from: principal;
+    fromAmount: nat8;
+    to: Principal;
+    toAmount: nat8;
+};
+
+service : {
+   add_user: (Principal) -> ();
+   add_order: (Order) -> ();
+   get_users: () ->  (vec Principal) query;
+   get_orders: () -> (vec Order) query;
+   whoami: () -> (Principal) query;
+ };
+
