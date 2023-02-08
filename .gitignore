@@ -4,3 +4,6 @@ dist
 dist-ssr
 *.local
 .dfx
+
+//rustycan
+src/rustycan/target
