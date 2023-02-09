@@ -13,6 +13,11 @@
       "package": "rustycan",
       "type": "rust"
     },
+    "rustytest": {
+      "candid": "src/rustytest/rustytest.did",
+      "package": "rustytest",
+      "type": "rust"
+    },
     "bootcamptoken": {
       "main": "./src/bootcamptoken/main.mo",
       "type": "motoko",

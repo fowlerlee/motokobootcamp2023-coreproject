@@ -16,26 +16,26 @@ pub struct Order {
     pub toAmount: u8,
 }
 
-// #[derive(Clone, Serialize, CandidType, Deserialize)]
-// pub type SubAccount = u8;
+pub type SubAccount = u8;
 
-// #[derive(Clone, Serialize, CandidType, Deserialize)]
-// pub type Account = {
-//     pub principal : Principal,
-//     pub subaccount : Option<SubAccount>,
-// }
+#[derive(Clone, Serialize, CandidType, Deserialize)]
+pub struct Account {
+    pub principal: Principal,
+    pub subaccount: Option<SubAccount>,
+}
 
 #[derive(Clone, Serialize, CandidType, Deserialize)]
 pub struct Store {
     pub store: BTreeSet<Order>,
     pub users: BTreeSet<Principal>,
+    pub wallets: BTreeMap<Principal, Account>,
 }
 
-// #[derive(CandidType)]
+// #[derive(Clone, Serialize, CandidType, Deserialize)]
 // pub struct Balance {
 //     pub owner: Principal,
 //     pub token: Principal,
-//     pub amount: Nat,
+//     pub amount: usize,
 // }
 
 // pub type CancelOrderReceipt = Result<OrderId, CancelOrderErr>;

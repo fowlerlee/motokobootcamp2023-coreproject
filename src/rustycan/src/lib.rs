@@ -8,7 +8,6 @@ use ic_cdk::{caller, storage};
 use ic_cdk_macros::*;
 
 use std::cell::RefCell;
-use std::collections::btree_set;
 use std::collections::{BTreeMap, BTreeSet};
 
 thread_local! {
@@ -41,9 +40,23 @@ pub fn add_user(principal: Principal) {
 
 #[update]
 #[ic_cdk::export::candid::candid_method]
+pub fn add_wallet(pr: Principal, subacc : Option<SubAccount>) {
+    STORE.with(|s| s.borrow_mut().wallets.insert(pr, Account { principal: (pr), subaccount: (subacc) }));
+}
+
+#[update]
+#[ic_cdk::export::candid::candid_method]
 pub fn add_order(order: Order) {
     STORE.with(|s| s.borrow_mut().store.insert(order));
 }
+
+// #[import(canister = "rustytest")]
+// struct TestCanister;
+
+// #[update(name = "main")]
+// async fn main() -> u64 {
+//     TestCanister::main().await.0
+// }
 
 #[pre_upgrade]
 fn pre_upgrade() {

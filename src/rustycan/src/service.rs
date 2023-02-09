@@ -1,6 +1,5 @@
 
 use std::collections::{BTreeMap, BTreeSet};
-use ic_cdk::export::Principal;
 use crate::types::Store;
 
 impl Default for Store {
@@ -8,6 +7,7 @@ impl Default for Store {
         Store {
             store: BTreeSet::new(),
             users: BTreeSet::new(),
+            wallets: BTreeMap::new(),
         }
     }
 }
