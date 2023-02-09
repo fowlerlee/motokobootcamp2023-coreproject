@@ -11,7 +11,10 @@
     "rustycan": {
       "candid": "src/rustycan/rustycan.did",
       "package": "rustycan",
-      "type": "rust"
+      "type": "rust",
+      "dependencies": [
+        "rustytest"
+      ]
     },
     "rustytest": {
       "candid": "src/rustytest/rustytest.did",

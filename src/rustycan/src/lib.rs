@@ -6,9 +6,13 @@ use crate::types::*;
 use ic_cdk::export::Principal;
 use ic_cdk::{caller, storage};
 use ic_cdk_macros::*;
+use ic_cdk_macros::import;
 
 use std::cell::RefCell;
 use std::collections::{BTreeMap, BTreeSet};
+
+#[import(canister = "rustytest")]
+struct TestCanister;
 
 thread_local! {
     pub static STORE: RefCell<Store> = RefCell::new(Store::default());
@@ -50,8 +54,6 @@ pub fn add_order(order: Order) {
     STORE.with(|s| s.borrow_mut().store.insert(order));
 }
 
-// #[import(canister = "rustytest")]
-// struct TestCanister;
 
 // #[update(name = "main")]
 // async fn main() -> u64 {

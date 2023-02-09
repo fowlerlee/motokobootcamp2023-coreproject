@@ -16,10 +16,10 @@ impl Default for Store {
 
 impl Store {
 
-    fn transfer(to: Principal, from: Principal) -> Result<(),()> {
-        let to_account = STORE.with(|s|{s.borrow().wallets.get(&to)});
-        let from_account = STORE.with(|s| {s.borrow().wallets.get(&from)});
-        Ok(())
+    // fn transfer(to: Principal, from: Principal) -> Result<(),()> {
+    //     let to_account = STORE.with(|s|{s.borrow().wallets.get(&to)});
+    //     let from_account = STORE.with(|s| {s.borrow().wallets.get(&from)});
+    //     Ok(())
 
-    }
+    // }
 }
