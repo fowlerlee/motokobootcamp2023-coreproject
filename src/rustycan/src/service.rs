@@ -1,7 +1,6 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 use candid::Principal;
-use crate::STORE;
 use crate::types::Store;
 
 impl Default for Store {

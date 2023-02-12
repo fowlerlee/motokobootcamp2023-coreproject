@@ -23,6 +23,7 @@ service : {
    add_wallet: (Principal, opt SubAccount) -> ();
    get_users: () ->  (vec Principal) query;
    get_orders: () -> (vec Order) query;
+   call_canister: (Principal, text) -> ();
    whoami: () -> (Principal) query;
  };
 
