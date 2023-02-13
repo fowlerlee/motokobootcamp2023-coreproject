@@ -5,7 +5,7 @@ use crate::service::*;
 use crate::types::*;
 use candid::*;
 use ic_cdk::export::Principal;
-use ic_cdk::{caller, storage};
+use ic_cdk::{call, caller, storage};
 use ic_cdk_macros::*;
 
 use std::cell::RefCell;
@@ -69,9 +69,10 @@ struct Called {
 
 #[update]
 #[ic_cdk::export::candid::candid_method(update)]
-async fn call_canister(principal: Principal, topic: String) {
+async fn call_canister(principal: Principal, topic: String) -> Result<()> {
     let called = Called { topic };
-    let _call_result: core::result::Result<(), _> = ic_cdk::call(principal, "main", (called,)).await;
+    let call_result: core::result::Result<(), _> = call(principal, "main", (called,)).await;
+    call_result.unwrap().0
 }
 
 #[pre_upgrade]

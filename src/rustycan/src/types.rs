@@ -31,41 +31,55 @@ pub struct Store {
     pub wallets: BTreeMap<Principal, Account>,
 }
 
-// #[derive(Clone, Serialize, CandidType, Deserialize)]
-// pub struct Balance {
-//     pub owner: Principal,
-//     pub token: Principal,
-//     pub amount: usize,
-// }
+#[derive(Clone, Serialize, CandidType, Deserialize)]
+pub struct Balance {
+    pub owner: Principal,
+    pub token: Principal,
+    pub amount: usize,
+}
 
-// pub type CancelOrderReceipt = Result<OrderId, CancelOrderErr>;
+pub type CancelOrderReceipt = Result<OrderId, CancelOrderErr>;
 
-// #[derive(CandidType)]
-// pub enum CancelOrderErr {
-//     NotAllowed,
-//     NotExistingOrder,
-// }
+#[derive(CandidType)]
+pub enum CancelOrderErr {
+    NotAllowed,
+    NotExistingOrder,
+}
 
-// pub type DepositReceipt = Result<Nat, DepositErr>;
+pub type DepositReceipt = Result<usize, DepositErr>;
 
-// #[derive(CandidType)]
-// pub enum DepositErr {
-//     BalanceLow,
-//     TransferFailure,
-// }
+#[derive(CandidType)]
+pub enum DepositErr {
+    BalanceLow,
+    TransferFailure,
+}
 
-// pub type OrderPlacementReceipt = Result<Option<Order>, OrderPlacementErr>;
+pub type OrderPlacementReceipt = Result<Option<Order>, OrderPlacementErr>;
 
-// #[derive(CandidType)]
-// pub enum OrderPlacementErr {
-//     InvalidOrder,
-//     OrderBookFull,
-// }
+#[derive(CandidType)]
+pub enum OrderPlacementErr {
+    InvalidOrder,
+    OrderBookFull,
+}
 
-// pub type WithdrawReceipt = Result<Nat, WithdrawErr>;
+pub type WithdrawReceipt = Result<usize, WithdrawErr>;
 
-// #[derive(CandidType)]
-// pub enum WithdrawErr {
-//     BalanceLow,
-//     TransferFailure,
-// }
+#[derive(CandidType)]
+pub enum WithdrawErr {
+    BalanceLow,
+    TransferFailure,
+}
+
+#[derive(CandidType, Debug, PartialEq, Deserialize)]
+pub enum TxError {
+    InsufficientBalance,
+    InsufficientAllowance,
+    Unauthorized,
+    LedgerTrap,
+    AmountTooSmall,
+    BlockUsed,
+    ErrorOperationStyle,
+    ErrorTo,
+    Other,
+}
+pub type TxReceipt = Result<usize, TxError>;
