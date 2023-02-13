@@ -1,0 +1,6 @@
+type Called = text;
+
+service : {
+   main: (Called) -> (nat64);
+ };
+

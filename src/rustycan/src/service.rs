@@ -1,6 +1,6 @@
 
 use std::collections::{BTreeMap, BTreeSet};
-use ic_cdk::export::Principal;
+use candid::Principal;
 use crate::types::Store;
 
 impl Default for Store {
@@ -8,6 +8,17 @@ impl Default for Store {
         Store {
             store: BTreeSet::new(),
             users: BTreeSet::new(),
+            wallets: BTreeMap::new(),
         }
     }
+}
+
+impl Store {
+
+    // fn transfer(to: Principal, from: Principal) -> Result<(),()> {
+    //     let to_account = STORE.with(|s|{s.borrow().wallets.get(&to)});
+    //     let from_account = STORE.with(|s| {s.borrow().wallets.get(&from)});
+    //     Ok(())
+
+    // }
 }

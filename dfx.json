@@ -11,6 +11,14 @@
     "rustycan": {
       "candid": "src/rustycan/rustycan.did",
       "package": "rustycan",
+      "type": "rust",
+      "dependencies": [
+        "rustytest"
+      ]
+    },
+    "rustytest": {
+      "candid": "src/rustytest/rustytest.did",
+      "package": "rustytest",
       "type": "rust"
     },
     "bootcamptoken": {

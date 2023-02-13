@@ -1,5 +1,11 @@
 type Principal = principal;
 type OrderId = nat32;
+type SubAccount = nat8;
+
+type Account = record {
+  Principal;
+  subaccount: opt SubAccount;
+};
 
 
 type Order = record {
@@ -14,8 +20,10 @@ type Order = record {
 service : {
    add_user: (Principal) -> ();
    add_order: (Order) -> ();
+   add_wallet: (Principal, opt SubAccount) -> ();
    get_users: () ->  (vec Principal) query;
    get_orders: () -> (vec Order) query;
+   call_canister: (Principal, text) -> ();
    whoami: () -> (Principal) query;
  };
 
