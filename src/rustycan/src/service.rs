@@ -1,7 +1,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 use candid::Principal;
-use crate::types::Store;
+use crate::types::{Store, TxReceipt};
 
 impl Default for Store {
     fn default() -> Self {
@@ -23,8 +23,9 @@ impl Store {
         }
     }
 
-    pub async fn transfer (&self, to: Principal, from: Principal, amount: usize) ->  {
+    pub async fn transfer (&self, to: Principal, from: Principal, amount: usize) -> TxReceipt {
 
+        Ok(1usize)
     }
 
     // fn transfer(to: Principal, from: Principal) -> Result<(),()> {

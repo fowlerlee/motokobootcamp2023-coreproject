@@ -1,3 +1,5 @@
+#![allow(dead_code, unused_imports, unused_variables)]
+
 mod service;
 mod types;
 
@@ -67,13 +69,13 @@ struct Called {
     topic: String,
 }
 
-#[update]
-#[ic_cdk::export::candid::candid_method(update)]
-async fn call_canister(principal: Principal, topic: String) -> Result<()> {
-    let called = Called { topic };
-    let call_result: core::result::Result<(), _> = call(principal, "main", (called,)).await;
-    call_result.unwrap().0
-}
+// #[update]
+// #[ic_cdk::export::candid::candid_method(update)]
+// async fn call_canister(principal: Principal, topic: String) -> Result<()> {
+//     let called = Called { topic };
+//     let call_result: core::result::Result<(), _> = call(principal, "main", (called,)).await;
+//     Ok(call_result.unwrap())
+// }
 
 #[pre_upgrade]
 fn pre_upgrade() {
