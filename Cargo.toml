@@ -2,6 +2,7 @@
 members = [
     "src/rustycan",
     "src/rustytest",
+    "src/icmancanrust",
 ]
 
 [profile.release]
