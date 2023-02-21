@@ -690,6 +690,7 @@ checksum = "978b91fc78de9d2eb0144db717839cde3b35470199ea51aca362cb6310e93dfd"
 name = "icmancanrust"
 version = "0.1.0"
 dependencies = [
+ "candid 0.7.18",
  "ic-cdk 0.7.0",
  "ic-cdk-macros 0.6.8",
  "ic-cdk-optimizer",

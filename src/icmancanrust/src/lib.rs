@@ -1,5 +1,43 @@
-use ic_cdk::api::management_canister::main::*;
+use std::async_iter;
+
+// mod rustycan;
+use candid::*;
+
+use ic_cdk::*;
+use ic_cdk::{api::management_canister::main::*, export::Principal};
 use ic_cdk_macros::*;
+use std::collections::{BTreeSet};
+
+// #[import(canister = "rustycan")]
+// struct RustyCan;
+
+#[derive(Debug, PartialEq, CandidType, Deserialize)]
+struct Called {
+    topic: String,
+} 
+
+#[update]
+async fn get_orders() -> u64 {
+    let called = Called{topic: "lee".to_string()};
+    // async fn test(number: i32) -> Result<i32, sudograph::async_graphql::Error> {
+    let call_result: Result<u64, _> = ic_cdk::api::call::call(ic_cdk::export::Principal::from_text("qoctq-giaaa-aaaaa-aaaea-cai").unwrap(), "main", (called,)).await;
+    return call_result.unwrap().0;
+    // }
+    //     let (canister,) : (candid::Principal,) = ic_cdk::api::call(candid::Principal::management_canister(), "create_canister", ()).await?;
+    // let (canister,) : (BTreeSet<Order>,) = ic_cdk::api::call(, "create_canister", ()).await?;
+    // return RustyCan::get_orders().await.0;
+}
+
+pub type OrderId = u32;
+
+pub struct Order {
+    pub id: OrderId,
+    pub owner: Principal,
+    pub from: Principal,
+    pub fromAmount: u8,
+    pub to: Principal,
+    pub toAmount: u8,
+}
 
 #[update]
 async fn execute_main_methods() {
@@ -26,8 +64,6 @@ async fn execute_main_methods() {
     };
     update_settings(arg).await.unwrap();
 }
-
-
 
 #[cfg(test)]
 mod tests {

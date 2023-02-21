@@ -1,0 +1,17 @@
+type Principal = principal;
+type OrderId = nat32;
+
+type Order = record {
+    id: OrderId;
+    owner: principal;
+    from: principal;
+    fromAmount: nat8;
+    to: Principal;
+    toAmount: nat8;
+};
+
+service : {
+   execute_main_methods: () -> ();
+   get_orders: () -> (nat64);
+ };
+
