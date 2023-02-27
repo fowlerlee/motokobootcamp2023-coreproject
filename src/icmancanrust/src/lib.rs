@@ -1,32 +1,55 @@
-use std::async_iter;
-
-// mod rustycan;
 use candid::*;
 
 use ic_cdk::*;
 use ic_cdk::{api::management_canister::main::*, export::Principal};
+use ic_cdk::{api::management_canister::bitcoin::GetBalanceRequest, api::management_canister::*};
 use ic_cdk_macros::*;
-use std::collections::{BTreeSet};
+use std::collections::BTreeSet;
 
-// #[import(canister = "rustycan")]
-// struct RustyCan;
 
 #[derive(Debug, PartialEq, CandidType, Deserialize)]
 struct Called {
     topic: String,
-} 
-
-#[update]
-async fn get_orders() -> u64 {
-    let called = Called{topic: "lee".to_string()};
-    // async fn test(number: i32) -> Result<i32, sudograph::async_graphql::Error> {
-    let call_result: Result<u64, _> = ic_cdk::api::call::call(ic_cdk::export::Principal::from_text("qoctq-giaaa-aaaaa-aaaea-cai").unwrap(), "main", (called,)).await;
-    return call_result.unwrap().0;
-    // }
-    //     let (canister,) : (candid::Principal,) = ic_cdk::api::call(candid::Principal::management_canister(), "create_canister", ()).await?;
-    // let (canister,) : (BTreeSet<Order>,) = ic_cdk::api::call(, "create_canister", ()).await?;
-    // return RustyCan::get_orders().await.0;
 }
+
+
+// pub async fn get_balance(network: Network, address: String) -> u64 {
+//     let balance_res: Result<(Satoshi,), _> = call_with_payment(
+//         Principal::management_canister(),
+//         "bitcoin_get_balance",
+//         (GetBalanceRequest {
+//             address,
+//             network,
+//             min_confirmations: None,
+//         },),
+//         GET_BALANCE_COST_CYCLES,
+//     )
+//     .await;
+
+//     balance_res.unwrap().0
+// }
+
+// pub async fn bitcoin_get_balance(arg: GetBalanceRequest) -> CallResult<(Satoshi,)> {
+//     call_with_payment128(
+//         Principal::management_canister(),
+//         "bitcoin_get_balance",
+//         (arg,),
+//         GET_BALANCE_CYCLES,
+//     )
+//     .await
+// }
+
+// #[update]
+// async fn get_orders() -> u64 {
+//     let called = Called{topic: "lee".to_string()};
+//     // async fn test(number: i32) -> Result<i32, sudograph::async_graphql::Error> {
+//     let call_result: Result<u64, _> = ic_cdk::api::call::call(ic_cdk::export::Principal::from_text("qoctq-giaaa-aaaaa-aaaea-cai").unwrap(), "main", (called,)).await;
+//     return call_result.unwrap().0;
+//     // }
+//     //     let (canister,) : (candid::Principal,) = ic_cdk::api::call(candid::Principal::management_canister(), "create_canister", ()).await?;
+//     // let (canister,) : (BTreeSet<Order>,) = ic_cdk::api::call(, "create_canister", ()).await?;
+//     // return RustyCan::get_orders().await.0;
+// }
 
 pub type OrderId = u32;
 

@@ -8,6 +8,10 @@
       "main": "./src/dao/main.mo",
       "type": "motoko"
     },
+    "fileupload": {
+      "main": "./src/fileupload/main.mo",
+      "type": "motoko"
+    },
     "rustycan": {
       "candid": "src/rustycan/rustycan.did",
       "package": "rustycan",
