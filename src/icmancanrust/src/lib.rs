@@ -1,10 +1,17 @@
 use candid::*;
-
+use ic_cdk::caller;
 use ic_cdk::*;
 use ic_cdk::{api::management_canister::main::*, export::Principal};
 use ic_cdk::{api::management_canister::bitcoin::GetBalanceRequest, api::management_canister::*};
 use ic_cdk_macros::*;
 use std::collections::BTreeSet;
+use std::collections::HashMap;
+use std::cell::RefCell;
+
+use ic_ledger_types::{
+    AccountIdentifier, Memo, Tokens, DEFAULT_SUBACCOUNT, MAINNET_LEDGER_CANISTER_ID,
+};
+
 
 
 #[derive(Debug, PartialEq, CandidType, Deserialize)]
@@ -50,6 +57,28 @@ struct Called {
 //     // let (canister,) : (BTreeSet<Order>,) = ic_cdk::api::call(, "create_canister", ()).await?;
 //     // return RustyCan::get_orders().await.0;
 // }
+
+thread_local! {
+    static STATE: RefCell<State> = RefCell::new(State::default());
+}
+
+#[derive(Default)]
+pub struct Balances(pub HashMap<Principal, HashMap<Principal, Nat>>);
+type Orders = HashMap<OrderId, Order>;
+
+#[derive(Default)]
+pub struct State {
+    owner: Option<Principal>,
+    ledger: Option<Principal>,
+    exchange: Exchange,
+}
+
+#[derive(Default)]
+pub struct Exchange {
+    pub next_id: OrderId,
+    pub balances: Balances,
+    pub orders: Orders,
+}
 
 pub type OrderId = u32;
 
