@@ -1,31 +1,67 @@
 type canister_id = principal;
 type UserNumber = nat64;
+type Tokens = nat;
 type Subaccount = blob;
-type Result = 
+type Result__1 = 
  variant {
    err: text;
    ok: text;
  };
+type Result_1 = 
+ variant {
+   err: text;
+   ok: text;
+ };
+type Result = 
+ variant {
+   err: text;
+   ok: record {
+         nat;
+         nat;
+       };
+ };
+type ProposalState = 
+ variant {
+   accepted;
+   failed: text;
+   open;
+   rejected;
+   succeeded;
+ };
+type ProposalPayload = 
+ record {
+   canister_id: principal;
+   message: blob;
+   method: text;
+ };
 type Proposal = 
  record {
-   id: int;
-   "principal": principal;
-   "text": text;
-   vote_no: nat;
-   vote_yes: nat;
+   id: nat;
+   payload: ProposalPayload;
+   proposer: principal;
+   state: ProposalState;
+   timestamp: int;
+   voters: List;
+   votes_no: Tokens;
+   votes_yes: Tokens;
  };
 type Neuron = 
  record {
    account: Account;
    delay: int;
    id: principal;
-   locked_tokens: int;
+   locked_tokens: nat;
    state: variant {
             dissolved;
             dissolving;
             locked;
           };
  };
+type List = 
+ opt record {
+       principal;
+       List;
+     };
 type FrontendHostname = text;
 type Dao = 
  service {
@@ -38,24 +74,24 @@ type Dao =
                                    int;
                                    Proposal;
                                  }) query;
-   get_canister_status: (canister_id) -> (record {cycles: nat;});
+   get_canister_status: (canister_id) ->
+    (record {
+       cycles: nat;
+       idle_cycles_burned_per_day: nat;
+       memory_size: nat;
+     });
    get_neuron: (int) -> (opt Neuron) query;
    get_principal: () -> (principal);
    get_principal_from_II: (UserNumber, FrontendHostname) -> (principal);
    get_proposal: (int) -> (opt Proposal) query;
-   lock_neuron: (nat, int) -> (Result);
-   set_neuron_dissolving: (int) -> (Result);
-   submit_proposal: (text) -> (variant {
-                                 Err: text;
-                                 Ok: Proposal;
-                               });
-   vote: (int, bool) -> (variant {
-                           Err: text;
-                           Ok: record {
-                                 nat;
-                                 nat;
-                               };
-                         });
+   lock_neuron: (nat, int) -> (Result__1);
+   set_neuron_dissolving: (int) -> ();
+   submit_proposal: (ProposalPayload) -> (variant {
+                                            Err: text;
+                                            Ok: Proposal;
+                                          });
+   transfer_to_user_account: (Neuron) -> (Result_1);
+   vote: (int, bool) -> (Result);
  };
 type Account = 
  record {
