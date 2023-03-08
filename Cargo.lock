@@ -666,6 +666,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "ic-stable-structures"
+version = "0.5.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1c44a6b5418cf179c13d3d6a09de56aa258d74bf45b7992871935f7e27f51700"
+
+[[package]]
 name = "ic-types"
 version = "0.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -711,6 +717,7 @@ dependencies = [
  "ic-cdk-optimizer",
  "ic-cdk-timers",
  "ic-ledger-types",
+ "ic-stable-structures",
  "serde",
 ]
 

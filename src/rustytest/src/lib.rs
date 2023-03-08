@@ -4,6 +4,7 @@ use ic_cdk_macros::*;
 use candid::*;
 use serde::Deserialize;
 mod types;
+use serde::*;
 
 use types::Shop;
 

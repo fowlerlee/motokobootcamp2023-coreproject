@@ -7,17 +7,31 @@ use ic_cdk_macros::*;
 use std::collections::BTreeSet;
 use std::collections::HashMap;
 use std::cell::RefCell;
+use ic_stable_structures::memory_manager::{MemoryId, MemoryManager, VirtualMemory};
+use ic_stable_structures::{DefaultMemoryImpl, StableBTreeMap};
 
 use ic_ledger_types::{
     AccountIdentifier, Memo, Tokens, DEFAULT_SUBACCOUNT, MAINNET_LEDGER_CANISTER_ID,
 };
 
 
+mod types;
+use types::Memory;
+
 
 #[derive(Debug, PartialEq, CandidType, Deserialize)]
 struct Called {
     topic: String,
 }
+
+pub fn find_first(p : Principal){
+    STATE.with(|s|
+         if let Some(x) = s.borrow_mut().owner.take() {
+
+         })
+}
+
+
 
 
 // pub async fn get_balance(network: Network, address: String) -> u64 {
@@ -60,6 +74,16 @@ struct Called {
 
 thread_local! {
     static STATE: RefCell<State> = RefCell::new(State::default());
+    
+    static MEMORY_MANAGER: RefCell<MemoryManager<DefaultMemoryImpl>> =
+    RefCell::new(MemoryManager::init(DefaultMemoryImpl::default()));
+
+// Initialize a `StableBTreeMap` with `MemoryId(0)`.
+    static MAP: RefCell<StableBTreeMap<u128, u128, Memory>> = RefCell::new(
+    StableBTreeMap::init(
+        MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(0))),
+    )
+);
 }
 
 #[derive(Default)]
@@ -91,6 +115,18 @@ pub struct Order {
     pub toAmount: u8,
 }
 
+// Retrieves the value associated with the given key if it exists.
+#[ic_cdk_macros::query]
+fn get(key: u128) -> Option<u128> {
+    MAP.with(|p| p.borrow().get(&key))
+}
+
+// Inserts an entry into the map and returns the previous value of the key if it exists.
+#[ic_cdk_macros::update]
+fn insert(key: u128, value: u128) -> Option<u128> {
+    MAP.with(|p| p.borrow_mut().insert(key, value))
+}
+
 #[update]
 async fn execute_main_methods() {
     let arg = CreateCanisterArgument {
@@ -119,6 +155,7 @@ async fn execute_main_methods() {
 
 #[cfg(test)]
 mod tests {
+    use super::*;
     #[test]
     fn it_works() {
         let result = 2 + 2;
