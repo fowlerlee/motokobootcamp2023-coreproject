@@ -1,4 +1,4 @@
 npm install
-dfx start --background
+dfx start --background --clean
 dfx deploy
 npm run dev
