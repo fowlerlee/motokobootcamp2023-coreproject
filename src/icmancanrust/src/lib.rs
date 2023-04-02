@@ -18,6 +18,9 @@ use ic_ledger_types::{
 mod types;
 use types::Memory;
 
+mod filestore;
+use filestore::*;
+
 
 #[derive(Debug, PartialEq, CandidType, Deserialize)]
 struct Called {
@@ -82,8 +85,14 @@ thread_local! {
     static MAP: RefCell<StableBTreeMap<u128, u128, Memory>> = RefCell::new(
     StableBTreeMap::init(
         MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(0))),
-    )
-);
+    ));
+
+    // static FILES: RefCell<StableBTreeMap<u128, filestore::File, Memory>> = RefCell::new(
+    //     StableBTreeMap::init(
+    //         MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(0))),
+    //     ));
+
+    static FILES: RefCell<filestore::File> = RefCell::new(filestore::File::default())
 }
 
 #[derive(Default)]
