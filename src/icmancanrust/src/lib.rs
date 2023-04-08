@@ -1,41 +1,36 @@
-use candid::*;
-use ic_cdk::caller;
-use ic_cdk::*;
-use ic_cdk::{api::management_canister::main::*, export::Principal};
 use ic_cdk::{api::management_canister::bitcoin::GetBalanceRequest, api::management_canister::*};
 use ic_cdk_macros::*;
-use std::collections::BTreeSet;
-use std::collections::HashMap;
-use std::cell::RefCell;
-use ic_stable_structures::memory_manager::{MemoryId, MemoryManager, VirtualMemory};
-use ic_stable_structures::{DefaultMemoryImpl, StableBTreeMap};
-
+#[allow(unused_imports)]
 use ic_ledger_types::{
     AccountIdentifier, Memo, Tokens, DEFAULT_SUBACCOUNT, MAINNET_LEDGER_CANISTER_ID,
 };
+use std::collections::BTreeSet;
 
+use candid::*;
+use ic_cdk::caller;
+
+use ic_cdk::{api::management_canister::main::*, export::Principal};
+
+use ic_stable_structures::memory_manager::{MemoryId, MemoryManager, VirtualMemory};
+use ic_stable_structures::{DefaultMemoryImpl, StableBTreeMap};
+use std::cell::RefCell;
+use std::collections::HashMap;
 
 mod types;
 use types::Memory;
 
 mod filestore;
+#[allow(unused_imports)]
 use filestore::*;
-
 
 #[derive(Debug, PartialEq, CandidType, Deserialize)]
 struct Called {
     topic: String,
 }
 
-pub fn find_first(p : Principal){
-    STATE.with(|s|
-         if let Some(x) = s.borrow_mut().owner.take() {
-
-         })
+pub fn find_first(p: Principal) {
+    STATE.with(|s| if let Some(x) = s.borrow_mut().owner.take() {})
 }
-
-
-
 
 // pub async fn get_balance(network: Network, address: String) -> u64 {
 //     let balance_res: Result<(Satoshi,), _> = call_with_payment(
@@ -77,7 +72,7 @@ pub fn find_first(p : Principal){
 
 thread_local! {
     static STATE: RefCell<State> = RefCell::new(State::default());
-    
+
     static MEMORY_MANAGER: RefCell<MemoryManager<DefaultMemoryImpl>> =
     RefCell::new(MemoryManager::init(DefaultMemoryImpl::default()));
 
@@ -99,6 +94,7 @@ thread_local! {
 pub struct Balances(pub HashMap<Principal, HashMap<Principal, Nat>>);
 type Orders = HashMap<OrderId, Order>;
 
+#[allow(unused_imports)]
 #[derive(Default)]
 pub struct State {
     owner: Option<Principal>,
