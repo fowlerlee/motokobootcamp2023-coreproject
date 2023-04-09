@@ -2,30 +2,35 @@ type Principal = principal;
 type OrderId = nat32;
 
 type File = record {
-    name: text;
-    content: vec (nat8);
-    metadata: text;
+  name : text;
+  content: vec nat8;
+  metadata : text
 };
 
 // pub struct FileStorageCanister {
 //     files: HashMap<String, File>,
 // }
 
-// type FileStorageCanister = record {
-//     files: vec (text, File);
-// };
+type FileStorageCanister = record {
+  files : vec record {
+    text;
+    File
+  }
+};
 
 type Order = record {
-    id: OrderId;
-    owner: principal;
-    from: principal;
-    fromAmount: nat8;
-    to: Principal;
-    toAmount: nat8;
+  id : OrderId;
+  owner : principal;
+  from : principal;
+  fromAmount : nat8;
+  to : Principal;
+  toAmount : nat8
 };
 
 service : {
-   execute_main_methods: () -> ();
-   get_orders: () -> (nat64);
- };
+  execute_main_methods : () -> ();
+  get_orders : () -> (nat64);
 
+  insert : (nat64, FileStorageCanister) -> (opt FileStorageCanister);
+  get : (nat64) -> (opt FileStorageCanister) query;
+}

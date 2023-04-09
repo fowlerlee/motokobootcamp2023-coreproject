@@ -77,7 +77,7 @@ thread_local! {
     static MEMORY_MANAGER: RefCell<MemoryManager<DefaultMemoryImpl>> =
     RefCell::new(MemoryManager::init(DefaultMemoryImpl::default()));
 
-    static MAP: RefCell<StableBTreeMap<u128, FileStorageCanister, Memory>> = RefCell::new(
+    static MAP: RefCell<StableBTreeMap<u64, FileStorageCanister, Memory>> = RefCell::new(
     StableBTreeMap::init(
         MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(0))),
     ));
@@ -117,13 +117,13 @@ pub struct Order {
 
 // Retrieves the value associated with the given key if it exists.
 #[query]
-fn get(key: u128) -> Option<FileStorageCanister> {
+fn get(key: u64) -> Option<FileStorageCanister> {
     MAP.with(|p| p.borrow().get(&key))
 }
 
 // Inserts an entry into the map and returns the previous value of the key if it exists.
 #[update]
-fn insert(key: u128, value: FileStorageCanister) -> Option<FileStorageCanister> {
+fn insert(key: u64, value: FileStorageCanister) -> Option<FileStorageCanister> {
     MAP.with(|p| p.borrow_mut().insert(key, value))
 }
 
