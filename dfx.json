@@ -23,10 +23,7 @@
     "icmancanrust": {
       "candid": "src/icmancanrust/icmancanrust.did",
       "package": "rustycan",
-      "type": "rust",
-      "dependencies": [
-        "rustytest"
-      ]
+      "type": "rust"
     },
     "rustytest": {
       "candid": "src/rustytest/rustytest.did",

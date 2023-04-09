@@ -1,9 +1,9 @@
 use std::{collections::HashMap, ops::Deref};
 
 // Import necessary modules
-use ic_cdk::export::candid::{CandidType, Deserialize};
+// use ic_cdk::export::candid::{Deserialize};
 
-use candid::{Decode, Encode};
+use candid::{CandidType, Decode, Encode, Deserialize};
 #[allow(unused_imports)]
 use ic_cdk::storage;
 use ic_cdk_macros::*;
@@ -15,7 +15,7 @@ use std::{borrow::Cow, cell::RefCell};
 const MAX_VALUE_SIZE: u32 = 100;
 
 // Define the data structure for a file
-#[derive(Clone, Debug, CandidType, Deserialize, Default)]
+#[derive(Clone, Debug, Deserialize, Default, CandidType)]
 pub struct File {
     name: String,
     content: Vec<u8>,
@@ -46,10 +46,24 @@ impl BoundedStorable for File {
 }
 
 // Define the interface for the canister
-#[derive(CandidType)]
-struct FileStorageCanister {
-    // #[init]
+#[derive(CandidType, Deserialize)]
+pub struct FileStorageCanister {
     files: HashMap<String, File>,
+}
+
+impl Storable for FileStorageCanister {
+    fn to_bytes(&self) -> std::borrow::Cow<[u8]> {
+        Cow::Owned(Encode!(self).unwrap())
+    }
+
+    fn from_bytes(bytes: std::borrow::Cow<[u8]>) -> Self {
+        Decode!(bytes.as_ref(), Self).unwrap()
+    }
+}
+
+impl BoundedStorable for FileStorageCanister {
+    const MAX_SIZE: u32 = MAX_VALUE_SIZE;
+    const IS_FIXED_SIZE: bool = false;
 }
 
 impl FileStorageCanister {

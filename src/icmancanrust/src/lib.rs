@@ -1,3 +1,4 @@
+#[allow(unused_imports)]
 use ic_cdk::{api::management_canister::bitcoin::GetBalanceRequest, api::management_canister::*};
 use ic_cdk_macros::*;
 #[allow(unused_imports)]
@@ -76,16 +77,10 @@ thread_local! {
     static MEMORY_MANAGER: RefCell<MemoryManager<DefaultMemoryImpl>> =
     RefCell::new(MemoryManager::init(DefaultMemoryImpl::default()));
 
-// Initialize a `StableBTreeMap` with `MemoryId(0)`.
-    static MAP: RefCell<StableBTreeMap<u128, u128, Memory>> = RefCell::new(
+    static MAP: RefCell<StableBTreeMap<u128, FileStorageCanister, Memory>> = RefCell::new(
     StableBTreeMap::init(
         MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(0))),
     ));
-
-    // static FILES: RefCell<StableBTreeMap<u128, filestore::File, Memory>> = RefCell::new(
-    //     StableBTreeMap::init(
-    //         MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(0))),
-    //     ));
 
     static FILES: RefCell<filestore::File> = RefCell::new(filestore::File::default())
 }
@@ -94,7 +89,7 @@ thread_local! {
 pub struct Balances(pub HashMap<Principal, HashMap<Principal, Nat>>);
 type Orders = HashMap<OrderId, Order>;
 
-#[allow(unused_imports)]
+
 #[derive(Default)]
 pub struct State {
     owner: Option<Principal>,
@@ -121,16 +116,17 @@ pub struct Order {
 }
 
 // Retrieves the value associated with the given key if it exists.
-#[ic_cdk_macros::query]
-fn get(key: u128) -> Option<u128> {
+#[query]
+fn get(key: u128) -> Option<FileStorageCanister> {
     MAP.with(|p| p.borrow().get(&key))
 }
 
 // Inserts an entry into the map and returns the previous value of the key if it exists.
-#[ic_cdk_macros::update]
-fn insert(key: u128, value: u128) -> Option<u128> {
+#[update]
+fn insert(key: u128, value: FileStorageCanister) -> Option<FileStorageCanister> {
     MAP.with(|p| p.borrow_mut().insert(key, value))
 }
+
 
 #[update]
 async fn execute_main_methods() {
